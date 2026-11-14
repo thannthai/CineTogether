@@ -1,0 +1,20 @@
+
+# IDEs
+.idea/
+**/.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Operating System
+.DS_Store
+Thumbs.db
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
