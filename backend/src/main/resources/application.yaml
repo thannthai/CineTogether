@@ -1,3 +1,38 @@
 spring:
   application:
     name: cinetogether
+
+  # Load local secrets from backend/.env (relative to the working directory, i.e. backend/ for Gradle).
+  # Real environment variables take precedence, and the file is optional (CI/production use env vars).
+  config:
+    import: optional:file:.env[.properties]
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/cinetogether}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  flyway:
+    enabled: true
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Supabase publishes an ES256 (P-256) key in its JWKS; Spring defaults to RS256 only, so ES256 must be listed.
+          issuer-uri: ${SUPABASE_URL}/auth/v1
+          jwk-set-uri: ${SUPABASE_URL}/auth/v1/.well-known/jwks.json
+          jws-algorithms: ES256
+
+app:
+  cors:
+    # Comma-separated browser origins allowed to call /api/**.
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+
+server:
+  port: 8080

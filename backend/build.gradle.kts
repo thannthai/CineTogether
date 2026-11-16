@@ -32,9 +32,7 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.springframework.modulith:spring-modulith-observability-api")
     implementation("org.springframework.modulith:spring-modulith-starter-core")
-    implementation("org.springframework.modulith:spring-modulith-starter-jpa")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
-    developmentOnly("org.springframework.boot:spring-boot-docker-compose")
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("org.springframework.modulith:spring-modulith-actuator")
     runtimeOnly("org.springframework.modulith:spring-modulith-observability-core")
@@ -62,4 +60,7 @@ dependencyManagement {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    // Tests must not depend on a developer's backend/.env. The JWT decoder only reads this URL lazily, so a
+    // placeholder is enough (no test contacts Supabase).
+    environment("SUPABASE_URL", "https://test-project.invalid")
 }

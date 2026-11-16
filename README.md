@@ -29,4 +29,5 @@ public Watch Party MVP are drafted in `docs/`; feature implementation has not st
 
 ## Documentation
 
-Project documentation lives in the `docs/` directory (`product/`, `architecture/`, `design/`).
+Project documentation lives in the `docs/` directory (`product/`, `architecture/`, `design/`, `development/`). Start with
+`docs/development/setup.md` to run the project locally.

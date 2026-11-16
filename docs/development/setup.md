@@ -1,0 +1,241 @@
+# CineTogether — Local Development Setup
+
+Only commands that were actually run and observed are listed as verified. Anything else is marked as unverified.
+
+## Prerequisites
+
+- JDK 21 toolchain (Gradle resolves it; the shell default was JDK 22, which is fine for launching Gradle).
+- Docker (for local PostgreSQL and for Testcontainers-based tests).
+- Node.js and npm for the frontend (verified with Node 24.3 and npm 11.4; npm is the project package manager, see
+  `frontend/package-lock.json`).
+
+## Quick Start (fresh clone)
+
+From the repository root:
+
+```bash
+cp backend/.env.example backend/.env                  # set DB_PASSWORD and SUPABASE_URL (see "Supabase Auth")
+cp frontend/.env.example frontend/.env.local          # set the three VITE_* values
+(cd backend && docker compose up -d)                  # PostgreSQL 17
+(cd backend && ./gradlew bootRun)                     # Flyway migrates, API on :8080
+(cd frontend && npm ci && npm run dev)                # UI on :5173
+```
+
+Run `bootRun` and `npm run dev` in separate terminals. `DB_PASSWORD` is applied to PostgreSQL the first time its volume
+is created; if a volume already exists, use the password it was created with.
+
+Verification status of this path: the clone-equivalent steps that do not need secrets were executed on a clean copy of
+the committable files (`./gradlew test` without any `.env`, and `npm ci`, `npm run lint`, `npm run build` in
+`frontend/`). The database, `bootRun`, and `npm run dev` steps were verified on the existing environment, not on a
+brand-new database volume (creating one would require a second PostgreSQL instance).
+
+## Database
+
+PostgreSQL 17 runs from `backend/compose.yaml` (database `cinetogether`, user `cinetogether`, bound to
+`127.0.0.1:5432`, data in the `postgres_data` volume). The file pins `name: cinetogether`, so the project is
+`cinetogether`, the container is `cinetogether-postgres-1`, and the volume is `cinetogether_postgres_data` no matter
+which directory holds the file. Do not remove that `name:` line: without it Compose would derive the project name
+`backend` from the directory and create a new, empty volume.
+
+Compose reads the password from `backend/.env`, which sits next to `compose.yaml`, so no `--env-file` is needed.
+Run from `backend/`:
+
+```bash
+docker compose up -d      # start (idempotent; reuses the existing container and volume)
+docker compose ps         # status
+docker compose stop       # stop, keeps the data
+```
+
+- Verified: `config`, `up -d --dry-run`, and `ps` run from `backend/` without `--env-file` (they resolve
+  `DB_PASSWORD` from `backend/.env`), reuse the existing container (same container ID and start time, no new volume),
+  and `ps` shows it healthy on `127.0.0.1:5432->5432/tcp`. The Flyway history and tables were intact.
+- Unverified: `stop`, and starting the database from a stopped state.
+- Never use `docker compose down -v`: it deletes the data volume.
+
+The `spring-boot-docker-compose` dependency was removed, so Spring Boot never starts containers itself: always start
+the database manually with the commands above before `./gradlew bootRun`.
+
+## Configuration
+
+Create `backend/.env` (git-ignored; copy `backend/.env.example`) with:
+
+```text
+DB_URL=jdbc:postgresql://localhost:5432/cinetogether
+DB_USERNAME=cinetogether
+DB_PASSWORD=<local password>
+SUPABASE_URL=https://<project-ref>.supabase.co
+```
+
+`backend/src/main/resources/application.yaml` reads `DB_URL` (defaulting to the URL above), `DB_USERNAME`, and
+`DB_PASSWORD`. Hibernate runs with `ddl-auto: validate`; **Flyway owns the schema**.
+
+`application.yaml` imports `backend/.env` through `spring.config.import: optional:file:.env[.properties]`, resolved
+against the working directory, so the application must be started from `backend/` (as Gradle does). Real environment
+variables take precedence over the file. In IntelliJ, set the Run Configuration's working directory to `backend/` or define
+the variables there (unverified).
+
+Without the file or the variables, startup fails with `password authentication failed for user "${DB_USERNAME}"`
+(the placeholder is not resolved).
+
+## Supabase Auth
+
+Supabase handles login/registration in the React app; the Spring Boot backend only validates the access token (JWT)
+as an OAuth2 Resource Server. No Supabase secret is needed anywhere in this repository.
+
+### Variables
+
+| File (git-ignored)      | Variable                         | Purpose                                                   |
+|-------------------------|----------------------------------|-----------------------------------------------------------|
+| `frontend/.env.local`   | `VITE_SUPABASE_URL`              | Project URL used by the React client                      |
+| `frontend/.env.local`   | `VITE_SUPABASE_PUBLISHABLE_KEY`  | Public client key (`sb_publishable_...`), safe for browsers |
+| `frontend/.env.local`   | `VITE_API_BASE_URL`              | Backend base URL (`http://localhost:8080/api/v1`)         |
+| `backend/.env`          | `SUPABASE_URL`                   | Same project URL; used to derive issuer and JWKS URL      |
+
+Templates with placeholders are in `backend/.env.example` and `frontend/.env.example` (these are tracked).
+**`SUPABASE_URL` and `VITE_SUPABASE_URL` must be identical.** A one-character typo in the backend value was found and
+fixed during verification (the host did not resolve), which would have broken issuer and JWKS lookups.
+
+Never put the service-role/secret key, the legacy JWT secret, or database passwords in any `VITE_*` variable (they are
+bundled into the browser code) or commit them. `.env`, `.env.*` (except `.env.example`) and `frontend/.env.local` are
+git-ignored; verified with `git check-ignore`, and no env file is tracked.
+
+### JWT signing algorithm and JWKS (verified)
+
+Evidence from the project's public endpoints (no secret used):
+
+- `GET <SUPABASE_URL>/auth/v1/.well-known/jwks.json` returns HTTP 200 with one key: `kty=EC`, `crv=P-256`,
+  `alg=ES256`, `use=sig`. So the project signs with an **asymmetric ES256** key and exposes it via JWKS.
+- `GET <SUPABASE_URL>/auth/v1/.well-known/openid-configuration` gives `issuer = <SUPABASE_URL>/auth/v1` and
+  `jwks_uri = <SUPABASE_URL>/auth/v1/.well-known/jwks.json`.
+
+Not yet verified: the `alg` and `aud` of an actual access token (no user has logged in yet). Confirm with a real token in
+the Authentication milestone (expected `alg=ES256`, `aud=authenticated`).
+
+### Spring Boot configuration (prepared, verified at startup)
+
+`application.yaml` sets `spring.security.oauth2.resourceserver.jwt` with `issuer-uri`, `jwk-set-uri`, and
+`jws-algorithms: ES256`. The algorithm must be listed because Spring accepts only RS256 by default. Verified by running
+the app and sending forged tokens (valid structure, wrong signature):
+
+| Request                         | Result                                                                             |
+|---------------------------------|------------------------------------------------------------------------------------|
+| No token                        | `401`, `WWW-Authenticate: Bearer`                                                  |
+| Forged `ES256` token (known kid)| `401 invalid_token`: `Signed JWT rejected: Invalid signature` (JWKS key was used)  |
+| Forged `RS256` token            | `401 invalid_token`: `Another algorithm expected, or no matching key(s) found`     |
+
+`SUPABASE_URL` has no default, so a missing value breaks startup of the security configuration. CI must provide it.
+Audience validation, the `app_users` provisioning, and the `/me` endpoint are not implemented yet.
+
+### Pitfall: stale application processes
+
+`bootRun` started with a timeout or Ctrl+C can leave the JVM running and holding port 8080, which then answers with
+old configuration. If behavior looks stale, find the process that is *listening* (not merely connected, which would
+also match browsers or curl) and stop only that one:
+
+```bash
+lsof -nP -iTCP:8080 -sTCP:LISTEN
+kill <PID>
+```
+
+## Frontend (React + Vite + TypeScript)
+
+The app lives directly in `frontend/` (no nested folder). Stack: React 19, Vite 8, TypeScript, oxlint; no UI framework
+or Supabase client yet (added with the Authentication milestone).
+
+Setup and run, from `frontend/`:
+
+```bash
+cp .env.example .env.local     # then fill in the real values (git-ignored)
+npm install
+npm run dev                    # http://localhost:5173 (port is fixed with strictPort)
+npm run lint
+npm run build                  # type-checks (tsc -b) then builds to dist/
+```
+
+Verified: `npm install` (0 vulnerabilities), `npm run lint` (clean), `npm run build` (success), and `npm run dev`
+serving `/`, `/src/main.tsx`, `/src/App.tsx`, and `/src/config/env.ts` with HTTP 200.
+
+Structure: `src/main.tsx` (entry), `src/App.tsx` (placeholder page with a temporary setup check),
+`src/config/env.ts` (validated access to the `VITE_*` variables; fails fast with a clear message if one is missing),
+`src/vite-env.d.ts` (variable typings).
+
+Environment variables (`frontend/.env.local`): `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`,
+`VITE_API_BASE_URL`. Verified that all three reach the browser code (present in the production bundle and injected in
+dev), and that no backend-only value (database password, `SUPABASE_URL` from `backend/.env`) or secret-key marker does.
+Only `VITE_*` variables are exposed to the browser, so never put secrets there.
+
+### Backend connectivity and CORS
+
+The frontend at `http://localhost:5173` calls the API at `http://localhost:8080/api/v1`, a different origin, so the
+backend allows it. `SecurityConfig` (`com.thanh.cinetogether.config`) enables CORS for `/api/**` for the origins in
+`app.cors.allowed-origins` (default `http://localhost:5173`, override with `CORS_ALLOWED_ORIGINS`; comma-separated), with
+methods GET/POST/PATCH/PUT/DELETE/OPTIONS and headers `Authorization`/`Content-Type`, and no credentials (bearer tokens,
+no cookies). The same class keeps the existing rule that every request needs a valid JWT; per-endpoint public rules come
+with their features.
+
+Verified:
+
+- Before the change, a preflight from `localhost:5173` got `401` with no `Access-Control-Allow-Origin` (a browser
+  would block it).
+- After: preflight from `http://localhost:5173` returns `200` with `Access-Control-Allow-Origin`; an unknown origin gets
+  `403`; a request without a token gets `401` with `WWW-Authenticate: Bearer`.
+- Automated: `SecurityConfigTests` (3 tests) covers these three cases and passes with `./gradlew test`.
+- In a real browser (Chrome), the placeholder page at `http://localhost:5173` showed the Supabase variables as configured
+  and `Backend (http://localhost:8080/api/v1): reachable (HTTP 401)`. The 401 is expected without a login.
+
+The setup-check block in `App.tsx` is temporary and should be removed when real screens are built. WebSocket origin
+rules are separate and not configured yet.
+
+## Database Migrations (Flyway)
+
+Migrations live in `backend/src/main/resources/db/migration/` and run automatically when the application starts.
+Never edit an applied migration; add a new `V<n>__description.sql`.
+
+Verified command (from `backend/`):
+
+```bash
+./gradlew bootRun
+```
+
+Verified: with this command and no `DB_*` variables exported in the shell, no new container appeared, Flyway reported
+`Schema "public" is up to date`, and the application started. `./gradlew test` also passed.
+
+Observed result on an empty database (a later run reports `Schema "public" is up to date` and the application starts):
+
+```text
+Migrating schema "public" to version "1 - initial schema"
+Successfully applied 1 migration to schema "public", now at version "v1"
+```
+
+### Verify the schema
+
+```bash
+docker exec cinetogether-postgres-1 psql -U cinetogether -d cinetogether \
+  -c "select version, description, success from flyway_schema_history" -c "\dt"
+```
+
+Verified result after `V1__initial_schema.sql`: `app_users`, `watch_rooms`, `room_memberships`,
+`room_playback_states`, `room_chat_messages`, plus `flyway_schema_history`. Primary keys, foreign keys, unique and
+check constraints, the `visibility` default, the chat identity column, and the five partial/composite indexes from
+`docs/design/database.md` were present, and 36 constraint behaviour cases (valid and invalid rows, rolled back) passed.
+
+## Tests
+
+```bash
+cd backend && ./gradlew test
+```
+
+Verified: 4 tests pass (`contextLoads()` and the 3 `SecurityConfigTests`), also on a clean copy of the repository with
+no `.env` (the Gradle test task supplies a placeholder `SUPABASE_URL`, so tests never depend on a developer's `.env`).
+
+Tests use Testcontainers with `postgres:17` (the same major version as the local database; Docker must be running) and
+do not touch the local database. Verified: `contextLoads()`
+passes; Flyway applies V1 to the fresh container and Hibernate `validate` succeeds.
+
+## Known Issues
+
+- The Spring Modulith log line `No application modules detected!` is expected until the first feature package exists
+  (the `config` package holds only infrastructure).
+- `spring-modulith-starter-jpa` was removed because its `event_publication` entity failed `ddl-auto: validate` (no
+  migration creates that table). If event publication is needed later, re-add the dependency together with a
+  migration for the table whose columns match the entity.
