@@ -7,23 +7,26 @@ CineTogether is a personal movie-watching and Watch Party web application.
 The application aims to support two main experiences:
 
 - **Watch Alone:** Browse and watch movies individually.
-- **Watch Together:** Watch movies with friends and family through shared rooms, realtime chat, screen sharing, voice, and camera.
+- **Watch Together:** Watch movies with friends and family in private or public rooms with Host-controlled synchronized
+  playback and realtime chat.
 
 ## Tech Stack
 
 - **Backend:** Java 21, Spring Boot, Spring Modulith
 - **Frontend:** React
 - **Database:** PostgreSQL
-- **Realtime:** WebSocket
-- **Media:** WebRTC / LiveKit
+- **Authentication:** Supabase Auth
+- **Realtime:** WebSocket (REST for catalog and room management)
+- **Video:** HTML5 video / HLS.js
 - **Build Tool:** Gradle Kotlin DSL
 
 ## Project Status
 
 Planning & Design.
 
-The backend foundation has been initialized. Product requirements and architecture documentation are being developed.
+The backend foundation has been initialized. Product requirements, architecture, and detailed design for the private and
+public Watch Party MVP are drafted in `docs/`; feature implementation has not started.
 
 ## Documentation
 
-Project documentation will be maintained in the `docs/` directory.
+Project documentation lives in the `docs/` directory (`product/`, `architecture/`, `design/`).
