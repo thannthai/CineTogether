@@ -63,6 +63,19 @@ Never claim tests passed without running them.
 
 Do not create Git commits, push changes, or perform destructive operations unless explicitly requested.
 
+## Testing Approach
+
+- Apply Selective TDD: follow RED → GREEN → REFACTOR, one behavior at a time, for business rules and high-risk behavior
+  such as authentication, authorization, validation, idempotent upsert, and concurrency.
+- For framework configuration and external integrations, choose appropriate verification and integration tests instead
+  of forcing TDD mechanically.
+- Prefer fast unit tests for pure domain logic and integration tests with real PostgreSQL via Testcontainers for
+  persistence, transactions, and concurrency.
+- Test observable behavior rather than implementation details. Avoid unnecessary mocking and abstractions created solely
+  for tests.
+- Run the failing test before implementation when applying TDD, then rerun after implementation and refactoring. Never
+  claim tests pass without actually running them.
+
 ## Learning-Oriented Collaboration
 
 The developer wants to understand the implementation, not only generate working code.
