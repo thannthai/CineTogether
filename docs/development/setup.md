@@ -123,6 +123,12 @@ the app and sending forged tokens (valid structure, wrong signature):
 | Forged `ES256` token (known kid)| `401 invalid_token`: `Signed JWT rejected: Invalid signature` (JWKS key was used)  |
 | Forged `RS256` token            | `401 invalid_token`: `Another algorithm expected, or no matching key(s) found`     |
 
+The API is stateless and bearer-only: `SecurityConfig` sets `SessionCreationPolicy.STATELESS` and disables CSRF, so the
+server never creates an `HttpSession` or sets a `JSESSIONID` cookie, even for rejected anonymous requests. Both settings
+must be revisited together if cookie-based authentication (for example a BFF) is ever introduced. Verified with real
+HTTP requests (see Tests): anonymous GET/POST/PUT/PATCH/DELETE return `401` with `WWW-Authenticate: Bearer` and no
+`Set-Cookie`.
+
 `SUPABASE_URL` has no default, so a missing value breaks startup of the security configuration. CI must provide it.
 Audience validation, the `app_users` provisioning, and the `/me` endpoint are not implemented yet.
 
@@ -225,8 +231,14 @@ check constraints, the `visibility` default, the chat identity column, and the f
 cd backend && ./gradlew test
 ```
 
-Verified: 4 tests pass (`contextLoads()` and the 3 `SecurityConfigTests`), also on a clean copy of the repository with
-no `.env` (the Gradle test task supplies a placeholder `SUPABASE_URL`, so tests never depend on a developer's `.env`).
+Verified: 21 tests pass (`contextLoads()`, the 3 `SecurityConfigTests`, 12 `BearerOnlySecurityTests`, and 5
+`AnonymousHttpRequestTests`). The earlier 4-test run also passed on a clean copy of the repository with no `.env` (the
+Gradle test task supplies a placeholder `SUPABASE_URL`, so tests never depend on a developer's `.env`); the clean-copy
+run was not repeated for the 21 tests.
+
+Run one class with `./gradlew test --tests 'com.thanh.cinetogether.config.BearerOnlySecurityTests'`.
+`BearerOnlySecurityTests` uses `@WebMvcTest` (no database, no Docker) with a mocked `JwtDecoder`;
+`AnonymousHttpRequestTests` starts the full application on a random port and sends real HTTP requests.
 
 Tests use Testcontainers with `postgres:17` (the same major version as the local database; Docker must be running) and
 do not touch the local database. Verified: `contextLoads()`

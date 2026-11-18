@@ -46,10 +46,19 @@ Authentication & User Profile
 - Removed `spring-modulith-starter-jpa` (its `event_publication` entity failed schema validation). Verified afterwards:
   `./gradlew test` passes (`contextLoads()`), and the application starts against the local database.
 
+- Authentication Task 1, Stateless & CSRF Hardening: anonymous requests were getting a `JSESSIONID` cookie (GET through
+  the saved-request cache; POST/PUT/PATCH/DELETE through the CSRF token repository). `SecurityConfig` now uses
+  `SessionCreationPolicy.STATELESS` and `csrf.disable()` (bearer-only API; both must be revisited if cookie auth or a BFF
+  is added). Verified with `./gradlew test` (21 tests pass): `BearerOnlySecurityTests` (MockMvc: valid Bearer passes for
+  every method, invalid Bearer gives 401 `invalid_token`, anonymous requests create no session) and
+  `AnonymousHttpRequestTests` (random-port real HTTP: `401`, Bearer challenge, no `Set-Cookie`). The new HTTP test was
+  seen failing against the old configuration (all methods) and against `STATELESS` alone (all but GET).
+
 ## Current Task
 
 Authentication & User Profile. Development Environment Setup is complete (database, Flyway V1, backend tests, Supabase
-JWT configuration, React frontend, and frontend-to-backend connectivity are all verified).
+JWT configuration, React frontend, and frontend-to-backend connectivity are all verified). Task 1 (stateless hardening)
+is done; the next steps are below.
 
 ## Blockers
 
@@ -58,7 +67,8 @@ JWT configuration, React frontend, and frontend-to-backend connectivity are all 
 
 ## Next Task
 
-Implement Authentication & User Profile: add the Supabase client and login/register UI, verify a real token's
+Remaining Authentication & User Profile work (Task 1, stateless hardening, is done): add the Supabase client and
+login/register UI, verify a real token's
 `alg`/`aud` (and add audience validation), the idempotent `app_users` upsert on authenticated requests, `GET /me` /
 `PATCH /me`, and per-endpoint Security rules (public catalog and public room endpoints, everything else authenticated).
 Remove the temporary setup check from `frontend/src/App.tsx` when real screens are added.

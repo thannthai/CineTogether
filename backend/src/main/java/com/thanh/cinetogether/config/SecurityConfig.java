@@ -8,15 +8,23 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
- * Baseline HTTP security: every request needs a valid Supabase JWT (the same behaviour as Spring Boot's default
- * resource-server setup), plus CORS so the browser frontend can call the API. Per-endpoint rules (public catalog and
- * public rooms) are added with the features that need them.
+ * Baseline HTTP security for a stateless, bearer-token-only API: every request needs a valid Supabase JWT in the
+ * {@code Authorization} header, plus CORS so the browser frontend can call the API. Per-endpoint rules (public catalog
+ * and public rooms) are added with the features that need them.
+ * <p>
+ * Stateless means the server creates no {@code HttpSession} and sets no cookie, not even for rejected anonymous
+ * requests. {@code STATELESS} stops the rejected request from being saved in a session, and CSRF protection is
+ * disabled because its default token repository creates a session on state-changing requests; it is also pointless
+ * here, since the browser never attaches a bearer token on its own. Both settings must be revisited together if
+ * cookie-based authentication is ever introduced. {@code BearerOnlySecurityTests} and
+ * {@code AnonymousHttpRequestTests} guard this behaviour.
  */
 @Configuration(proxyBeanMethods = false)
 class SecurityConfig {
@@ -25,6 +33,9 @@ class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) {
         return http
                 .cors(Customizer.withDefaults())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // See the class Javadoc: re-enable CSRF if cookie-based authentication (for example a BFF) is added.
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(requests -> requests.anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .build();
