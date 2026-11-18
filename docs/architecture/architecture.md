@@ -112,8 +112,8 @@ remain private. Spring Modulith should verify module dependencies and detect cyc
 An indicative package structure is:
 
 ```text
-com.cinetogether/
-├── CineTogetherApplication.java
+com.thanh.cinetogether/
+├── CinetogetherApplication.java
 ├── identity/
 ├── catalog/
 ├── watchparty/
@@ -121,8 +121,8 @@ com.cinetogether/
 └── config/
 ```
 
-The initial Gradle skeleton uses a different base package; align it to `com.cinetogether` before adding modules, because
-Spring Modulith derives module boundaries from the application class's package.
+The base package is `com.thanh.cinetogether`; Spring Modulith derives module boundaries from the direct subpackages of
+the application class's package.
 
 Within a module, introduce `domain`, `application`, `infrastructure`, or `web` packages only as complexity warrants.
 Package names and boundaries may evolve during implementation.
