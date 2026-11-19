@@ -60,6 +60,11 @@ Authentication & User Profile
   was inspected: `alg=ES256` with `kid`, `iss=<SUPABASE_URL>/auth/v1`, `aud=authenticated`, lifetime 3600 s, and no
   `full_name`/`name` in `user_metadata`. Details are in `setup.md`. No backend code changed.
 
+- Authentication Task 3, audience validation: `application.yaml` now sets `audiences: authenticated`. `JwtValidationTests`
+  (real decoder, local JWKS, tokens signed in the test) was seen failing first: tokens with another or no `aud` were
+  accepted (404 instead of 401). After the change `./gradlew test` passes (27 tests); valid tokens pass, and wrong or
+  missing `aud`, another issuer, expiry, and a wrong signing key give 401.
+
 ## Current Task
 
 Authentication & User Profile. Development Environment Setup is complete (database, Flyway V1, backend tests, Supabase
@@ -72,15 +77,14 @@ is done; the next steps are below.
 
 ## Next Task
 
-Remaining Authentication & User Profile work (Tasks 1 and 2 are done), in order:
+Remaining Authentication & User Profile work (Tasks 1 to 3 are done), in order:
 
-1. Audience validation (`audiences: authenticated`), tested against the real decoder.
-2. REST errors as `application/problem+json` (401/403 and `VALIDATION_ERROR`).
-3. `identity` module: idempotent `app_users` upsert on authenticated requests.
-4. `GET /me` and `PATCH /me`.
-5. Per-endpoint Security rules for the endpoints that exist so far (public catalog and public room rules come with
+1. REST errors as `application/problem+json` (401/403 and `VALIDATION_ERROR`).
+2. `identity` module: idempotent `app_users` upsert on authenticated requests.
+3. `GET /me` and `PATCH /me`.
+4. Per-endpoint Security rules for the endpoints that exist so far (public catalog and public room rules come with
    their features).
-6. Minimal React login/register/logout screen (FR-AUTH-04); remove the temporary setup check from
+5. Minimal React login/register/logout screen (FR-AUTH-04); remove the temporary setup check from
    `frontend/src/App.tsx`.
 
 WebSocket `AUTH` and token renewal belong to the WebSocket milestone.

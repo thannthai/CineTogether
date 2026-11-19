@@ -28,6 +28,9 @@ spring:
           issuer-uri: ${SUPABASE_URL}/auth/v1
           jwk-set-uri: ${SUPABASE_URL}/auth/v1/.well-known/jwks.json
           jws-algorithms: ES256
+          # Supabase access tokens for signed-in users carry aud=authenticated (verified with a real token). Spring Boot
+          # validates the audience only when this is set; tokens with another or no audience are rejected.
+          audiences: authenticated
 
 app:
   cors:

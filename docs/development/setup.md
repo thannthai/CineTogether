@@ -163,7 +163,11 @@ HTTP requests (see Tests): anonymous GET/POST/PUT/PATCH/DELETE return `401` with
 `Set-Cookie`.
 
 `SUPABASE_URL` has no default, so a missing value breaks startup of the security configuration. CI must provide it.
-Audience validation, the `app_users` provisioning, and the `/me` endpoint are not implemented yet.
+Audience validation is on: `audiences: authenticated` makes Spring Boot add an audience validator to the decoder (it
+checks `aud` only when this property is set), so tokens with another audience or none are rejected. Verified by
+`JwtValidationTests`, which runs the real decoder against a local JWKS and signed test tokens: a valid token passes;
+a wrong or missing `aud`, another issuer, an expired token, and a token signed with another key all give `401`. The
+`app_users` provisioning and the `/me` endpoint are not implemented yet.
 
 ### Pitfall: stale application processes
 
@@ -264,13 +268,14 @@ check constraints, the `visibility` default, the chat identity column, and the f
 cd backend && ./gradlew test
 ```
 
-Verified: 21 tests pass (`contextLoads()`, the 3 `SecurityConfigTests`, 12 `BearerOnlySecurityTests`, and 5
-`AnonymousHttpRequestTests`). The earlier 4-test run also passed on a clean copy of the repository with no `.env` (the
+Verified: 27 tests pass (`contextLoads()`, the 3 `SecurityConfigTests`, 12 `BearerOnlySecurityTests`, 6
+`JwtValidationTests`, and 5 `AnonymousHttpRequestTests`). The earlier 4-test run also passed on a clean copy of the repository with no `.env` (the
 Gradle test task supplies a placeholder `SUPABASE_URL`, so tests never depend on a developer's `.env`); the clean-copy
-run was not repeated for the 21 tests.
+run was not repeated for the 27 tests.
 
 Run one class with `./gradlew test --tests 'com.thanh.cinetogether.config.BearerOnlySecurityTests'`.
 `BearerOnlySecurityTests` uses `@WebMvcTest` (no database, no Docker) with a mocked `JwtDecoder`;
+`JwtValidationTests` uses `@WebMvcTest` with the real decoder, a local JWKS server, and tokens signed in the test;
 `AnonymousHttpRequestTests` starts the full application on a random port and sends real HTTP requests.
 
 Tests use Testcontainers with `postgres:17` (the same major version as the local database; Docker must be running) and
