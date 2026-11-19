@@ -87,6 +87,9 @@ Example:
 }
 ```
 
+`requestId` is not returned in the MVP: there is no request-correlation ID yet. Add it when request logging introduces
+one.
+
 | HTTP Status | Meaning                            |
 |-------------|------------------------------------|
 | `400`       | Invalid request                    |
@@ -100,6 +103,8 @@ Example:
 
 Core error codes:
 
+- `UNAUTHENTICATED` (`401`: missing or invalid access token)
+- `FORBIDDEN` (`403`: authenticated but not allowed, when no more specific code applies)
 - `VALIDATION_ERROR`
 - `INVALID_INVITE`
 - `ROOM_NOT_FOUND`
@@ -115,6 +120,11 @@ Core error codes:
 - `AUTH_FAILED` (WebSocket `AUTH` rejected)
 
 The frontend maps error codes to user-facing Vietnamese messages.
+
+A `401` always has the same body, whatever the reason (missing, malformed, expired, or wrongly signed token), so it does
+not reveal why a token was rejected. The reason is in the standard `WWW-Authenticate: Bearer error="invalid_token"`
+header. The `UNAUTHENTICATED` response is implemented; `FORBIDDEN` and `VALIDATION_ERROR` are implemented with the first
+features that need them.
 
 ## 2. REST API
 

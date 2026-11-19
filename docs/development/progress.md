@@ -65,6 +65,12 @@ Authentication & User Profile
   accepted (404 instead of 401). After the change `./gradlew test` passes (27 tests); valid tokens pass, and wrong or
   missing `aud`, another issuer, expiry, and a wrong signing key give 401.
 
+- Authentication Task 4, REST authentication errors: a missing or invalid token now gets `401` with an
+  `application/problem+json` body (`code: UNAUTHENTICATED`) and keeps the `WWW-Authenticate: Bearer` header, via
+  `ProblemJsonAuthenticationEntryPoint`. `ProblemJsonErrorTests` failed first (no body, no content type). `./gradlew
+  test` passes (29 tests). `FORBIDDEN` (403) and `VALIDATION_ERROR` (400) are deferred to the first features that need
+  them (400 with `PATCH /me`); `requestId` is not returned in the MVP. `api.md` §1.2 was updated accordingly.
+
 ## Current Task
 
 Authentication & User Profile. Development Environment Setup is complete (database, Flyway V1, backend tests, Supabase
@@ -77,14 +83,13 @@ is done; the next steps are below.
 
 ## Next Task
 
-Remaining Authentication & User Profile work (Tasks 1 to 3 are done), in order:
+Remaining Authentication & User Profile work (Tasks 1 to 4 are done), in order:
 
-1. REST errors as `application/problem+json` (401/403 and `VALIDATION_ERROR`).
-2. `identity` module: idempotent `app_users` upsert on authenticated requests.
-3. `GET /me` and `PATCH /me`.
-4. Per-endpoint Security rules for the endpoints that exist so far (public catalog and public room rules come with
+1. `identity` module: idempotent `app_users` upsert on authenticated requests.
+2. `GET /me` and `PATCH /me`.
+3. Per-endpoint Security rules for the endpoints that exist so far (public catalog and public room rules come with
    their features).
-5. Minimal React login/register/logout screen (FR-AUTH-04); remove the temporary setup check from
+4. Minimal React login/register/logout screen (FR-AUTH-04); remove the temporary setup check from
    `frontend/src/App.tsx`.
 
 WebSocket `AUTH` and token renewal belong to the WebSocket milestone.

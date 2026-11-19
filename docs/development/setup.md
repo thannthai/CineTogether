@@ -169,6 +169,11 @@ checks `aud` only when this property is set), so tokens with another audience or
 a wrong or missing `aud`, another issuer, an expired token, and a token signed with another key all give `401`. The
 `app_users` provisioning and the `/me` endpoint are not implemented yet.
 
+A missing or invalid token gets `401` with an `application/problem+json` body (`code: UNAUTHENTICATED`, see
+`docs/design/api.md` §1.2), the same for every reason, plus the standard `WWW-Authenticate: Bearer` header (with
+`error="invalid_token"` for a bad token). Verified by `ProblemJsonErrorTests` through MockMvc only; the body has not been
+checked over real HTTP.
+
 ### Pitfall: stale application processes
 
 `bootRun` started with a timeout or Ctrl+C can leave the JVM running and holding port 8080, which then answers with
@@ -268,14 +273,15 @@ check constraints, the `visibility` default, the chat identity column, and the f
 cd backend && ./gradlew test
 ```
 
-Verified: 27 tests pass (`contextLoads()`, the 3 `SecurityConfigTests`, 12 `BearerOnlySecurityTests`, 6
-`JwtValidationTests`, and 5 `AnonymousHttpRequestTests`). The earlier 4-test run also passed on a clean copy of the repository with no `.env` (the
+Verified: 29 tests pass (`contextLoads()`, the 3 `SecurityConfigTests`, 12 `BearerOnlySecurityTests`, 6
+`JwtValidationTests`, 2 `ProblemJsonErrorTests`, and 5 `AnonymousHttpRequestTests`). The earlier 4-test run also passed on a clean copy of the repository with no `.env` (the
 Gradle test task supplies a placeholder `SUPABASE_URL`, so tests never depend on a developer's `.env`); the clean-copy
-run was not repeated for the 27 tests.
+run was not repeated for the 29 tests.
 
 Run one class with `./gradlew test --tests 'com.thanh.cinetogether.config.BearerOnlySecurityTests'`.
 `BearerOnlySecurityTests` uses `@WebMvcTest` (no database, no Docker) with a mocked `JwtDecoder`;
 `JwtValidationTests` uses `@WebMvcTest` with the real decoder, a local JWKS server, and tokens signed in the test;
+`ProblemJsonErrorTests` uses `@WebMvcTest` with a mocked `JwtDecoder` to check the 401 response body;
 `AnonymousHttpRequestTests` starts the full application on a random port and sends real HTTP requests.
 
 Tests use Testcontainers with `postgres:17` (the same major version as the local database; Docker must be running) and

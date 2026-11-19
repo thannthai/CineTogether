@@ -13,6 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Baseline HTTP security for a stateless, bearer-token-only API: every request needs a valid Supabase JWT in the
@@ -25,19 +26,24 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  * here, since the browser never attaches a bearer token on its own. Both settings must be revisited together if
  * cookie-based authentication is ever introduced. {@code BearerOnlySecurityTests} and
  * {@code AnonymousHttpRequestTests} guard this behaviour.
+ * <p>
+ * A missing or invalid token is answered by {@link ProblemJsonAuthenticationEntryPoint}: 401 with the
+ * {@code application/problem+json} body of {@code docs/design/api.md} §1.2 and the standard Bearer challenge header.
  */
 @Configuration(proxyBeanMethods = false)
 class SecurityConfig {
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) {
+    SecurityFilterChain securityFilterChain(HttpSecurity http, JsonMapper jsonMapper) {
         return http
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // See the class Javadoc: re-enable CSRF if cookie-based authentication (for example a BFF) is added.
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(requests -> requests.anyRequest().authenticated())
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .authenticationEntryPoint(new ProblemJsonAuthenticationEntryPoint(jsonMapper))
+                        .jwt(Customizer.withDefaults()))
                 .build();
     }
 
