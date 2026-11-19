@@ -15,6 +15,8 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+# IntelliJ HTTP Client private environment (real URLs, keys, test credentials); the .example file is tracked.
+http-client.private.env.json
 
 # Logs
 *.log

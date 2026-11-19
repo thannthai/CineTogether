@@ -54,6 +54,12 @@ Authentication & User Profile
   `AnonymousHttpRequestTests` (random-port real HTTP: `401`, Bearer challenge, no `Set-Cookie`). The new HTTP test was
   seen failing against the old configuration (all methods) and against `STATELESS` alone (all but GET).
 
+- Authentication Task 2, real token verification: added `backend/http/auth.http` (IntelliJ HTTP Client sign-up and
+  sign-in against the Supabase Auth REST API, calls the backend with the Bearer token; the sign-in handler logs only
+  non-sensitive claim facts) and a git-ignored private environment file with a tracked `.example`. A real access token
+  was inspected: `alg=ES256` with `kid`, `iss=<SUPABASE_URL>/auth/v1`, `aud=authenticated`, lifetime 3600 s, and no
+  `full_name`/`name` in `user_metadata`. Details are in `setup.md`. No backend code changed.
+
 ## Current Task
 
 Authentication & User Profile. Development Environment Setup is complete (database, Flyway V1, backend tests, Supabase
@@ -62,16 +68,22 @@ is done; the next steps are below.
 
 ## Blockers
 
-- Real access-token `alg`/`aud` claims are unverified until a user can log in (planned for this milestone).
 - WebSocket origin restrictions are not configured yet (needed with the WebSocket milestone).
 
 ## Next Task
 
-Remaining Authentication & User Profile work (Task 1, stateless hardening, is done): add the Supabase client and
-login/register UI, verify a real token's
-`alg`/`aud` (and add audience validation), the idempotent `app_users` upsert on authenticated requests, `GET /me` /
-`PATCH /me`, and per-endpoint Security rules (public catalog and public room endpoints, everything else authenticated).
-Remove the temporary setup check from `frontend/src/App.tsx` when real screens are added.
+Remaining Authentication & User Profile work (Tasks 1 and 2 are done), in order:
+
+1. Audience validation (`audiences: authenticated`), tested against the real decoder.
+2. REST errors as `application/problem+json` (401/403 and `VALIDATION_ERROR`).
+3. `identity` module: idempotent `app_users` upsert on authenticated requests.
+4. `GET /me` and `PATCH /me`.
+5. Per-endpoint Security rules for the endpoints that exist so far (public catalog and public room rules come with
+   their features).
+6. Minimal React login/register/logout screen (FR-AUTH-04); remove the temporary setup check from
+   `frontend/src/App.tsx`.
+
+WebSocket `AUTH` and token renewal belong to the WebSocket milestone.
 
 ## Notes
 

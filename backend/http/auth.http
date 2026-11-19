@@ -1,0 +1,55 @@
+### Supabase Auth + backend smoke requests (IntelliJ HTTP Client; Postman can import the same calls).
+### Pick the "dev" environment. Values come from http-client.private.env.json (git-ignored; copy
+### http-client.private.env.json.example and fill it in). Never commit real values.
+
+### 1. Sign up (only once per test account).
+### If the project requires email confirmation, click the link in the email before signing in.
+POST {{supabaseUrl}}/auth/v1/signup
+apikey: {{publishableKey}}
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 2. Sign in. The access token is kept in a client variable, and the handler below logs only non-sensitive facts
+### about it (never the token, sub, or email). Read them in the "Response Handler" tab of the Services tool window.
+### The Response tab DOES show the full body, token included: do not copy it into chat, issues, or documents.
+POST {{supabaseUrl}}/auth/v1/token?grant_type=password
+apikey: {{publishableKey}}
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+> {%
+    // JWT parts are base64url: map to base64 and re-pad before atob.
+    const decode = part => JSON.parse(atob(
+        part.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(part.length / 4) * 4, "=")));
+
+    const token = response.body.access_token;
+    client.global.set("accessToken", token);
+
+    const [headerPart, claimsPart] = token.split(".");
+    const header = decode(headerPart);
+    const claims = decode(claimsPart);
+
+    client.log("alg = " + header.alg);
+    client.log("kid present = " + ("kid" in header));
+    client.log("iss matches = " + (claims.iss === request.environment.get("supabaseUrl") + "/auth/v1"));
+    client.log("aud = " + claims.aud);
+    client.log("role = " + claims.role);
+    client.log("exp (UTC) = " + new Date(claims.exp * 1000).toISOString());
+    client.log("claim names = " + Object.keys(claims).sort().join(", "));
+    client.log("user_metadata keys = " + Object.keys(claims.user_metadata || {}).sort().join(", "));
+%}
+
+### 3. Call the backend with the token from step 2 (the endpoint exists from the /me task onwards).
+GET {{apiBaseUrl}}/me
+Authorization: Bearer {{accessToken}}
+
+### 4. Same call without a token: expect 401 with WWW-Authenticate: Bearer.
+GET {{apiBaseUrl}}/me

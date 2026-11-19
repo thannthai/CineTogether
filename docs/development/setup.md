@@ -108,8 +108,41 @@ Evidence from the project's public endpoints (no secret used):
 - `GET <SUPABASE_URL>/auth/v1/.well-known/openid-configuration` gives `issuer = <SUPABASE_URL>/auth/v1` and
   `jwks_uri = <SUPABASE_URL>/auth/v1/.well-known/jwks.json`.
 
-Not yet verified: the `alg` and `aud` of an actual access token (no user has logged in yet). Confirm with a real token in
-the Authentication milestone (expected `alg=ES256`, `aud=authenticated`).
+### Real access token (verified)
+
+An access token obtained by signing in a throwaway test account with email and password (see "Getting a token without
+the frontend" below) was inspected. Only non-sensitive facts are recorded here:
+
+| Item                   | Observed value                                                              |
+|------------------------|-----------------------------------------------------------------------------|
+| `alg` (header)         | `ES256`, with a `kid` present (matches the JWKS key)                        |
+| `iss`                  | `<SUPABASE_URL>/auth/v1` (matches `issuer-uri`)                             |
+| `aud`                  | `authenticated`                                                             |
+| `role`                 | `authenticated`                                                             |
+| Lifetime               | 3600 seconds (`exp - iat`)                                                  |
+| Claim names            | `iss, sub, aud, exp, iat, email, phone, app_metadata, user_metadata, role, aal, amr, session_id, is_anonymous` |
+| `user_metadata` keys   | `email, email_verified, phone_verified, sub`, with no `full_name` or `name` |
+
+Consequences: audience validation uses `authenticated`, and for email/password sign-ups the initial `display_name`
+falls back to the email local part (`docs/design/database.md` §3.1), because no name claim exists.
+
+This project requires email confirmation: a new account can sign in only after its confirmation link is opened.
+Supabase also rejects example domains such as `example.com` as invalid addresses.
+
+### Getting a token without the frontend
+
+`backend/http/auth.http` (IntelliJ HTTP Client; Postman can do the same calls) signs up and signs in against the
+Supabase Auth REST API using only the publishable key, then calls the backend with `Authorization: Bearer`. Setup:
+
+```bash
+cp backend/http/http-client.private.env.json.example backend/http/http-client.private.env.json   # git-ignored
+```
+
+Fill in the project URL, the publishable key, and a throwaway test account (a real mailbox you can read, for example a
+`+` alias, and a throwaway password), then pick the `dev` environment in the editor. The sign-in request's handler stores
+the token in a client variable and logs only non-sensitive facts (`alg`, `kid` present, `iss` match, `aud`, `role`,
+`exp`, claim names) in the Response Handler tab. Never paste the Response tab anywhere: it contains the access and
+refresh tokens, and IntelliJ also saves responses under `.idea/httpRequests/` (git-ignored).
 
 ### Spring Boot configuration (prepared, verified at startup)
 
