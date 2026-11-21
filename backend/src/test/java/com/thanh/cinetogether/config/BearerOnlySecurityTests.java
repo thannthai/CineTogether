@@ -24,6 +24,8 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.thanh.cinetogether.identity.ProfileProvisioner;
+
 /**
  * The API authenticates with a bearer token only (no cookies, no server session). The real {@code Authorization}
  * header goes through the real bearer-token filter; only the {@link JwtDecoder} is faked, so no Supabase call is made.
@@ -41,6 +43,9 @@ class BearerOnlySecurityTests {
 
     @MockitoBean
     private JwtDecoder jwtDecoder;
+
+    @MockitoBean
+    private ProfileProvisioner profileProvisioner;
 
     private void stubDecoder() {
         Jwt jwt = Jwt.withTokenValue(VALID_TOKEN)

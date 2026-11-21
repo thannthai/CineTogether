@@ -20,6 +20,8 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.thanh.cinetogether.identity.ProfileProvisioner;
+
 /**
  * REST authentication failures use the error format of {@code docs/design/api.md} §1.2: an
  * {@code application/problem+json} body with a stable machine-readable {@code code}, so the frontend can map it to a
@@ -34,6 +36,9 @@ class ProblemJsonErrorTests {
 
     @MockitoBean
     private JwtDecoder jwtDecoder;
+
+    @MockitoBean
+    private ProfileProvisioner profileProvisioner;
 
     /**
      * A request without any token gets 401 with a problem+json body and code {@code UNAUTHENTICATED}.

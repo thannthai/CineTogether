@@ -9,10 +9,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import com.thanh.cinetogether.identity.ProfileProvisioner;
+
 import tools.jackson.databind.json.JsonMapper;
 
 /**
@@ -34,12 +37,14 @@ import tools.jackson.databind.json.JsonMapper;
 class SecurityConfig {
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, JsonMapper jsonMapper) {
+    SecurityFilterChain securityFilterChain(HttpSecurity http, JsonMapper jsonMapper,
+            ProfileProvisioner profileProvisioner) {
         return http
                 .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // See the class Javadoc: re-enable CSRF if cookie-based authentication (for example a BFF) is added.
                 .csrf(csrf -> csrf.disable())
+                .addFilterAfter(new ProfileProvisioningFilter(profileProvisioner), BearerTokenAuthenticationFilter.class)
                 .authorizeHttpRequests(requests -> requests.anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .authenticationEntryPoint(new ProblemJsonAuthenticationEntryPoint(jsonMapper))

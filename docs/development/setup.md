@@ -167,7 +167,18 @@ Audience validation is on: `audiences: authenticated` makes Spring Boot add an a
 checks `aud` only when this property is set), so tokens with another audience or none are rejected. Verified by
 `JwtValidationTests`, which runs the real decoder against a local JWKS and signed test tokens: a valid token passes;
 a wrong or missing `aud`, another issuer, an expired token, and a token signed with another key all give `401`. The
-`app_users` provisioning and the `/me` endpoint are not implemented yet.
+`/me` endpoint is not implemented yet.
+
+Profile provisioning: after the bearer token is validated, `ProfileProvisioningFilter` (in `config`) calls
+`ProfileProvisioner.ensureProfile` (the public entry point of the `identity` module), which inserts the caller's
+`app_users` row with `INSERT ... ON CONFLICT (id) DO NOTHING` in its own short transaction. An existing profile is never
+changed, so a name edited later is kept; anonymous and invalid-token requests create nothing; a database failure stops
+the request. The initial name is `user_metadata.display_name` from the token (cleaned: trimmed, at most 80 characters),
+else the email local part, else `Viewer-` plus the first 6 characters of the user ID. `user_metadata` is editable by the
+client, so it only suggests a name. Verified by `DisplayNamesTests`, `UserProfilesTests` (including 8 concurrent calls
+for one user, repeated for 20 rounds), and `ProfileProvisioningTests`; the concurrency test was seen failing against a
+check-then-insert implementation. Not yet checked with a real token carrying `display_name`: sign up a new test
+account with `data.display_name` (see `backend/http/auth.http`).
 
 A missing or invalid token gets `401` with an `application/problem+json` body (`code: UNAUTHENTICATED`, see
 `docs/design/api.md` §1.2), the same for every reason, plus the standard `WWW-Authenticate: Bearer` header (with
@@ -273,16 +284,19 @@ check constraints, the `visibility` default, the chat identity column, and the f
 cd backend && ./gradlew test
 ```
 
-Verified: 29 tests pass (`contextLoads()`, the 3 `SecurityConfigTests`, 12 `BearerOnlySecurityTests`, 6
-`JwtValidationTests`, 2 `ProblemJsonErrorTests`, and 5 `AnonymousHttpRequestTests`). The earlier 4-test run also passed on a clean copy of the repository with no `.env` (the
-Gradle test task supplies a placeholder `SUPABASE_URL`, so tests never depend on a developer's `.env`); the clean-copy
-run was not repeated for the 29 tests.
+Verified: 52 tests pass (`contextLoads()`, `ModularityTests`, the 3 `SecurityConfigTests`, 12
+`BearerOnlySecurityTests`, 6 `JwtValidationTests`, 2 `ProblemJsonErrorTests`, 5 `AnonymousHttpRequestTests`, 13
+`DisplayNamesTests`, 3 `UserProfilesTests`, and 6 `ProfileProvisioningTests`). The earlier 4-test run also passed on a
+clean copy of the repository with no `.env` (the Gradle test task supplies a placeholder `SUPABASE_URL`, so tests never
+depend on a developer's `.env`); the clean-copy run was not repeated for the 52 tests.
 
 Run one class with `./gradlew test --tests 'com.thanh.cinetogether.config.BearerOnlySecurityTests'`.
 `BearerOnlySecurityTests` uses `@WebMvcTest` (no database, no Docker) with a mocked `JwtDecoder`;
 `JwtValidationTests` uses `@WebMvcTest` with the real decoder, a local JWKS server, and tokens signed in the test;
 `ProblemJsonErrorTests` uses `@WebMvcTest` with a mocked `JwtDecoder` to check the 401 response body;
-`AnonymousHttpRequestTests` starts the full application on a random port and sends real HTTP requests.
+`AnonymousHttpRequestTests` starts the full application on a random port and sends real HTTP requests;
+`UserProfilesTests` and `ProfileProvisioningTests` run the full application against the Testcontainers PostgreSQL;
+`DisplayNamesTests` is a plain unit test; `ModularityTests` runs Spring Modulith's `verify()` (see Known Issues).
 
 Tests use Testcontainers with `postgres:17` (the same major version as the local database; Docker must be running) and
 do not touch the local database. Verified: `contextLoads()`
@@ -290,8 +304,10 @@ passes; Flyway applies V1 to the fresh container and Hibernate `validate` succee
 
 ## Known Issues
 
-- The Spring Modulith log line `No application modules detected!` is expected until the first feature package exists
-  (the `config` package holds only infrastructure).
+- Spring Modulith treats each direct subpackage of `com.thanh.cinetogether` as a module: today `identity` and `config`.
+  `ModularityTests` fails on a dependency cycle or on use of another module's internals (seen failing with a temporary
+  `identity` to `config` dependency). `config` is infrastructure that depends on `identity`'s public `ProfileProvisioner`,
+  not the other way round.
 - `spring-modulith-starter-jpa` was removed because its `event_publication` entity failed `ddl-auto: validate` (no
   migration creates that table). If event publication is needed later, re-add the dependency together with a
   migration for the table whose columns match the entity.

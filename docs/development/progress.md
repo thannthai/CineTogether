@@ -71,6 +71,16 @@ Authentication & User Profile
   test` passes (29 tests). `FORBIDDEN` (403) and `VALIDATION_ERROR` (400) are deferred to the first features that need
   them (400 with `PATCH /me`); `requestId` is not returned in the MVP. `api.md` §1.2 was updated accordingly.
 
+- Authentication Task 5, `identity` module and profile provisioning: an authenticated request now creates the caller's
+  `app_users` row once (`INSERT ... ON CONFLICT DO NOTHING`, own short transaction), named from
+  `user_metadata.display_name`, else the email local part, else `Viewer-` plus 6 ID characters. Added `DisplayNames`,
+  `UserProfiles`, the public `ProfileProvisioner`, and `ProfileProvisioningFilter` in `config`. Verified with
+  `./gradlew test` (52 tests pass): unit tests for the name rule, PostgreSQL tests for the upsert (the concurrency test
+  catches a check-then-insert implementation in 5 of 5 runs, versus 1 of 3 before it was repeated for 20 rounds), request
+  tests for provisioning (valid token creates, anonymous and invalid token create nothing, a database failure stops the
+  request), and `ModularityTests`. Not done: the JPA entity (deferred to `GET /me`), and a check with a real token that
+  carries `display_name`.
+
 ## Current Task
 
 Authentication & User Profile. Development Environment Setup is complete (database, Flyway V1, backend tests, Supabase
@@ -83,13 +93,12 @@ is done; the next steps are below.
 
 ## Next Task
 
-Remaining Authentication & User Profile work (Tasks 1 to 4 are done), in order:
+Remaining Authentication & User Profile work (Tasks 1 to 5 are done), in order:
 
-1. `identity` module: idempotent `app_users` upsert on authenticated requests.
-2. `GET /me` and `PATCH /me`.
-3. Per-endpoint Security rules for the endpoints that exist so far (public catalog and public room rules come with
+1. `GET /me` and `PATCH /me`.
+2. Per-endpoint Security rules for the endpoints that exist so far (public catalog and public room rules come with
    their features).
-4. Minimal React login/register/logout screen (FR-AUTH-04); remove the temporary setup check from
+3. Minimal React login/register/logout screen (FR-AUTH-04); remove the temporary setup check from
    `frontend/src/App.tsx`.
 
 WebSocket `AUTH` and token renewal belong to the WebSocket milestone.

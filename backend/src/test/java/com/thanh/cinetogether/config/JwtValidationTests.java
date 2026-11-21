@@ -30,9 +30,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+
+import com.thanh.cinetogether.identity.ProfileProvisioner;
 
 /**
  * Token validation with the real {@code JwtDecoder} that Spring Boot builds from {@code application.yaml}.
@@ -64,6 +67,9 @@ class JwtValidationTests {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockitoBean
+    private ProfileProvisioner profileProvisioner;
 
     @Test
     void tokenWithValidSignatureIssuerAudienceAndExpiryIsAccepted() throws Exception {

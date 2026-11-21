@@ -2,7 +2,8 @@
 ### Pick the "dev" environment. Values come from http-client.private.env.json (git-ignored; copy
 ### http-client.private.env.json.example and fill it in). Never commit real values.
 
-### 1. Sign up (only once per test account).
+### 1. Sign up (only once per test account). "data" is stored as user_metadata and appears in the token; the backend
+### uses user_metadata.display_name as the initial profile name (the email local part if it is missing).
 ### If the project requires email confirmation, click the link in the email before signing in.
 POST {{supabaseUrl}}/auth/v1/signup
 apikey: {{publishableKey}}
@@ -10,7 +11,10 @@ Content-Type: application/json
 
 {
   "email": "{{email}}",
-  "password": "{{password}}"
+  "password": "{{password}}",
+  "data": {
+    "display_name": "{{displayName}}"
+  }
 }
 
 ### 2. Sign in. The access token is kept in a client variable, and the handler below logs only non-sensitive facts
