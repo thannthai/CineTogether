@@ -10,12 +10,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.Instant;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.oauth2.jwt.BadJwtException;
@@ -31,8 +28,7 @@ import com.thanh.cinetogether.identity.ProfileProvisioner;
  * header goes through the real bearer-token filter; only the {@link JwtDecoder} is faked, so no Supabase call is made.
  * There is no controller yet, so a request that passes security ends in 404.
  */
-@WebMvcTest
-@Import(SecurityConfig.class)
+@SecurityWebMvcTest
 class BearerOnlySecurityTests {
 
     private static final String VALID_TOKEN = "valid-token";
@@ -74,24 +70,6 @@ class BearerOnlySecurityTests {
         mockMvc.perform(request(HttpMethod.valueOf(method), "/api/v1/nothing-here")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + VALID_TOKEN))
                 .andExpect(status().isNotFound());
-    }
-
-    /**
-     * B1: an anonymous request that is rejected with 401 must not create an HTTP session.
-     * <p>
-     * With the default session policy, the filter that handles the rejection saves the unauthenticated request in
-     * the {@code HttpSession} so it could be replayed after a form login. That creates a {@code JSESSIONID} cookie
-     * on a response that has no login at all. {@code Accept: *}{@code /*} is what curl sends by default, and it is
-     * the case where this was observed.
-     */
-    @Test
-    void anonymousRequestIsRejectedWithBearerChallengeAndWithoutCreatingSession() throws Exception {
-        mockMvc.perform(request(HttpMethod.GET, "/api/v1/nothing-here")
-                        .header(HttpHeaders.ACCEPT, "*/*"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(header().string(HttpHeaders.WWW_AUTHENTICATE, startsWith("Bearer")))
-                .andExpect(result -> assertNull(
-                        result.getRequest().getSession(false), "no session must be created"));
     }
 
     /**

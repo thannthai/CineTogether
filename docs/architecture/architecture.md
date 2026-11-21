@@ -127,6 +127,22 @@ the application class's package.
 Within a module, introduce `domain`, `application`, `infrastructure`, or `web` packages only as complexity warrants.
 Package names and boundaries may evolve during implementation.
 
+The `identity` module is the reference layout, and later modules follow it:
+
+```text
+identity/
+├── ProfileProvisioner.java   public API of the module: the only type other modules may use
+├── application/              use cases and transactions (Profiles)
+├── domain/                   business rules in plain Java, no framework (DisplayNames)
+├── persistence/              JPA entities, repositories, SQL (AppUser, UserProfiles)
+└── web/                      controllers and request/response types (MeController)
+```
+
+Dependencies point inward: `web` → `application` → `domain` and `persistence`; `domain` depends on nothing else. Types
+used across these packages are `public`, but Spring Modulith treats subpackages as internal, so only the public types in
+the module's root package are visible to other modules. `ModularityTests` enforces this (the compiler does not). A type
+returned by `application` and serialized as JSON lives in `application`, not `web`, to keep the dependency direction.
+
 ## 5. Communication & Key Flows
 
 ### 5.1. Authentication

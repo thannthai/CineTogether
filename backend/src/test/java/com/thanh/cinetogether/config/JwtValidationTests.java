@@ -27,8 +27,6 @@ import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -44,8 +42,7 @@ import com.thanh.cinetogether.identity.ProfileProvisioner;
  * key and serve its public half as a JWKS from a local HTTP server, which replaces Supabase's JWKS endpoint. A token
  * that passes validation ends in 404 (no controller exists yet); a rejected token ends in 401.
  */
-@WebMvcTest
-@Import(SecurityConfig.class)
+@SecurityWebMvcTest
 class JwtValidationTests {
 
     private static final String ISSUER = "https://test-project.invalid/auth/v1";

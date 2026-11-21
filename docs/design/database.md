@@ -89,8 +89,13 @@ Stores application-specific user profile information.
 - The profile is created by an idempotent upsert (`INSERT … ON CONFLICT (id) DO NOTHING`) performed by the
   authentication layer on every authenticated request and WebSocket `AUTH`, before any room operation, in its own short
   transaction.
-- Initial `display_name`: trimmed Supabase display/full-name metadata, else the email local part, else `Viewer-` plus
-  the first 6 characters of the user ID; truncated to 80 characters and never blank.
+- Initial `display_name`: trimmed `user_metadata.display_name` from the token, else the email local part, else
+  `Viewer-` plus the first 6 characters of the user ID; truncated to 80 characters and never blank. A candidate with
+  control or invisible format characters, or with nothing visible, is skipped. `user_metadata` is editable by the
+  client, so it only suggests a name.
+- A user can change the name through `PATCH /me` (`api.md` §2.1), which also sets `updated_at`. The 80 characters are
+  counted as characters, not UTF-16 units. The database check only trims ASCII whitespace, so the application also
+  rejects names made of other invisible characters.
 - Concurrent profile creation must not produce duplicate records.
 - Passwords, refresh tokens, and authentication sessions are not stored here.
 - There is no foreign key to Supabase's `auth.users` because identity is managed externally.

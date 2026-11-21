@@ -1,7 +1,5 @@
 package com.thanh.cinetogether;
 
-import static org.hamcrest.Matchers.startsWith;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -23,13 +21,6 @@ class SecurityConfigTests {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Test
-    void requestWithoutTokenIsRejectedWithBearerChallenge() throws Exception {
-        mockMvc.perform(get("/api/v1/me"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(header().string(HttpHeaders.WWW_AUTHENTICATE, startsWith("Bearer")));
-    }
 
     @Test
     void preflightFromFrontendOriginIsAllowedWithoutToken() throws Exception {

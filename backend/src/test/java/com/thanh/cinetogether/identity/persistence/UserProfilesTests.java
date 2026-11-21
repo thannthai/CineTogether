@@ -1,4 +1,4 @@
-package com.thanh.cinetogether.identity;
+package com.thanh.cinetogether.identity.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

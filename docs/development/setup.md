@@ -156,6 +156,13 @@ the app and sending forged tokens (valid structure, wrong signature):
 | Forged `ES256` token (known kid)| `401 invalid_token`: `Signed JWT rejected: Invalid signature` (JWKS key was used)  |
 | Forged `RS256` token            | `401 invalid_token`: `Another algorithm expected, or no matching key(s) found`     |
 
+Profile endpoints: `GET /api/v1/me` returns the caller's `id`, `displayName` and `createdAt`; `PATCH /api/v1/me`
+renames the caller (200 with the updated profile, 400 `VALIDATION_ERROR` for a bad name or body, see
+`docs/design/api.md` §2.1). The user is always the token's subject. `Profiles` takes a `java.time.Clock` (bean in
+`ClockConfig`) so tests can set `updated_at` deterministically; the DB clock (`created_at`) and the JVM clock can differ.
+Not yet checked with a real token end to end: run `bootRun`, sign up a new test account with `data.display_name` in
+`backend/http/auth.http`, then call `GET` and `PATCH /me`.
+
 The API is stateless and bearer-only: `SecurityConfig` sets `SessionCreationPolicy.STATELESS` and disables CSRF, so the
 server never creates an `HttpSession` or sets a `JSESSIONID` cookie, even for rejected anonymous requests. Both settings
 must be revisited together if cookie-based authentication (for example a BFF) is ever introduced. Verified with real
@@ -238,7 +245,7 @@ Verified:
   would block it).
 - After: preflight from `http://localhost:5173` returns `200` with `Access-Control-Allow-Origin`; an unknown origin gets
   `403`; a request without a token gets `401` with `WWW-Authenticate: Bearer`.
-- Automated: `SecurityConfigTests` (3 tests) covers these three cases and passes with `./gradlew test`.
+- Automated: `SecurityConfigTests` covers the two CORS cases (the missing-token case is covered by other tests).
 - In a real browser (Chrome), the placeholder page at `http://localhost:5173` showed the Supabase variables as configured
   and `Backend (http://localhost:8080/api/v1): reachable (HTTP 401)`. The 401 is expected without a login.
 
@@ -284,23 +291,25 @@ check constraints, the `visibility` default, the chat identity column, and the f
 cd backend && ./gradlew test
 ```
 
-Verified: 52 tests pass (`contextLoads()`, `ModularityTests`, the 3 `SecurityConfigTests`, 12
-`BearerOnlySecurityTests`, 6 `JwtValidationTests`, 2 `ProblemJsonErrorTests`, 5 `AnonymousHttpRequestTests`, 13
-`DisplayNamesTests`, 3 `UserProfilesTests`, and 6 `ProfileProvisioningTests`). The earlier 4-test run also passed on a
+Verified: 79 tests pass (`ModularityTests`, 2 `SecurityConfigTests`, 11 `BearerOnlySecurityTests`, 6
+`JwtValidationTests`, 2 `ProblemJsonErrorTests`, 5 `AnonymousHttpRequestTests`, 33 `DisplayNamesTests`, 3
+`UserProfilesTests`, 6 `ProfileProvisioningTests`, and 10 `MeEndpointTests`). The earlier 4-test run also passed on a
 clean copy of the repository with no `.env` (the Gradle test task supplies a placeholder `SUPABASE_URL`, so tests never
-depend on a developer's `.env`); the clean-copy run was not repeated for the 52 tests.
+depend on a developer's `.env`); the clean-copy run was not repeated for the 79 tests. The default `contextLoads()` test
+was removed: every full-application test already needs the same context.
 
 Run one class with `./gradlew test --tests 'com.thanh.cinetogether.config.BearerOnlySecurityTests'`.
 `BearerOnlySecurityTests` uses `@WebMvcTest` (no database, no Docker) with a mocked `JwtDecoder`;
 `JwtValidationTests` uses `@WebMvcTest` with the real decoder, a local JWKS server, and tokens signed in the test;
 `ProblemJsonErrorTests` uses `@WebMvcTest` with a mocked `JwtDecoder` to check the 401 response body;
 `AnonymousHttpRequestTests` starts the full application on a random port and sends real HTTP requests;
-`UserProfilesTests` and `ProfileProvisioningTests` run the full application against the Testcontainers PostgreSQL;
+`UserProfilesTests`, `ProfileProvisioningTests` and `MeEndpointTests` run the full application against the
+Testcontainers PostgreSQL; the web-slice tests use the `@SecurityWebMvcTest` annotation, which keeps feature modules out;
 `DisplayNamesTests` is a plain unit test; `ModularityTests` runs Spring Modulith's `verify()` (see Known Issues).
 
 Tests use Testcontainers with `postgres:17` (the same major version as the local database; Docker must be running) and
-do not touch the local database. Verified: `contextLoads()`
-passes; Flyway applies V1 to the fresh container and Hibernate `validate` succeeds.
+do not touch the local database. Verified: the full-application tests start; Flyway applies V1 to the fresh container
+and Hibernate `validate` succeeds, which also checks that the `AppUser` entity matches the `app_users` table.
 
 ## Known Issues
 

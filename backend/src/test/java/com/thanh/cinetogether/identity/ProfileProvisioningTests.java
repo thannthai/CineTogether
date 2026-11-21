@@ -28,6 +28,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.thanh.cinetogether.TestcontainersConfiguration;
+import com.thanh.cinetogether.identity.persistence.UserProfiles;
 
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest

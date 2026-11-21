@@ -123,8 +123,8 @@ The frontend maps error codes to user-facing Vietnamese messages.
 
 A `401` always has the same body, whatever the reason (missing, malformed, expired, or wrongly signed token), so it does
 not reveal why a token was rejected. The reason is in the standard `WWW-Authenticate: Bearer error="invalid_token"`
-header. The `UNAUTHENTICATED` response is implemented; `FORBIDDEN` and `VALIDATION_ERROR` are implemented with the first
-features that need them.
+header. `UNAUTHENTICATED` and `VALIDATION_ERROR` are implemented; `FORBIDDEN` is implemented with the first feature that needs
+it.
 
 ## 2. REST API
 
@@ -156,7 +156,15 @@ Example response:
 }
 ```
 
-The user ID is always derived from the validated JWT.
+`PATCH /me` returns `200` with the updated profile, in the same shape as `GET /me`. `displayName` is trimmed and must be
+1 to 80 characters, counted as characters (an emoji is one). A name with no visible characters or with control or
+invisible format characters (zero-width space, right-to-left override, line breaks) is rejected, while the zero-width
+joiner that builds emoji sequences is allowed. An invalid name, a missing `displayName`, or a body that is not valid JSON
+returns `400` with code `VALIDATION_ERROR`, and the profile is left unchanged. Extra fields in the body, such as `id`,
+are ignored.
+
+The user ID is always derived from the validated JWT. Both endpoints return `401` (`UNAUTHENTICATED`) without a valid
+token, before the body is read.
 
 ### 2.2. Movie Catalog & Watch Alone
 
