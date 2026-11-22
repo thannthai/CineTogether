@@ -1,4 +1,4 @@
-package com.thanh.cinetogether.catalog.domain;
+package com.thanh.cinetogether.catalog.domain.browse;
 
 public class InvalidPagingException extends RuntimeException {
 

@@ -1,4 +1,4 @@
-package com.thanh.cinetogether.catalog.infrastructure;
+package com.thanh.cinetogether.catalog.infrastructure.kkphim;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -7,8 +7,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.thanh.cinetogether.catalog.domain.MovieType;
-import com.thanh.cinetogether.catalog.domain.Paging;
+import com.thanh.cinetogether.catalog.domain.movie.MovieType;
+import com.thanh.cinetogether.catalog.domain.browse.Paging;
 
 class KKPhimMappingTests {
 
@@ -63,6 +63,35 @@ class KKPhimMappingTests {
     void relativePathWithoutACdnBaseGivesNoImage() {
         assertThat(KKPhimMapping.imageUrl(null, "uploads/a.jpg")).isNull();
         assertThat(KKPhimMapping.imageUrl("  ", "uploads/a.jpg")).isNull();
+    }
+
+    @Test
+    void inlineTagsAreRemovedWithoutAddingSpaces() {
+        assertThat(KKPhimMapping.plainText("Hel<b>lo</b> <i>world</i>")).isEqualTo("Hello world");
+    }
+
+    @Test
+    void paragraphsAndLineBreaksBecomeNewlines() {
+        assertThat(KKPhimMapping.plainText("<p>First</p><p>Second</p>")).isEqualTo("First\nSecond");
+        assertThat(KKPhimMapping.plainText("One<br/>Two<br>Three")).isEqualTo("One\nTwo\nThree");
+    }
+
+    @Test
+    void scriptAndStyleElementsAreRemovedWithTheirContent() {
+        assertThat(KKPhimMapping.plainText("<script>alert(1)</script>Hi<style>p{}</style>")).isEqualTo("Hi");
+    }
+
+    @Test
+    void commonEntitiesAreDecoded() {
+        assertThat(KKPhimMapping.plainText("Tom &amp; Jerry &quot;x&quot; &lt;3 &nbsp;ok"))
+                .isEqualTo("Tom & Jerry \"x\" <3 ok");
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"   ", "<p> </p>"})
+    void textWithNothingVisibleGivesNull(String html) {
+        assertThat(KKPhimMapping.plainText(html)).isNull();
     }
 
 }

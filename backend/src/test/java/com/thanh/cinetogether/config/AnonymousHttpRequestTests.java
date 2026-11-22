@@ -1,4 +1,4 @@
-package com.thanh.cinetogether;
+package com.thanh.cinetogether.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -13,6 +13,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
+
+import com.thanh.cinetogether.TestcontainersConfiguration;
 
 /**
  * Real HTTP against the embedded server (random port), complementing the MockMvc tests in

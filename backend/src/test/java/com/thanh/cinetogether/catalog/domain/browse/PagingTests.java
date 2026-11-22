@@ -1,4 +1,4 @@
-package com.thanh.cinetogether.catalog.domain;
+package com.thanh.cinetogether.catalog.domain.browse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

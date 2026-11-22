@@ -1,19 +1,31 @@
-package com.thanh.cinetogether.catalog.infrastructure;
+package com.thanh.cinetogether.catalog.infrastructure.kkphim;
 
 import java.net.URI;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriBuilder;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.thanh.cinetogether.catalog.domain.BrowseQuery;
-import com.thanh.cinetogether.catalog.domain.MoviePage;
+import com.thanh.cinetogether.catalog.domain.browse.BrowseQuery;
+import com.thanh.cinetogether.catalog.domain.movie.Episode;
+import com.thanh.cinetogether.catalog.domain.movie.MovieDetail;
+import com.thanh.cinetogether.catalog.domain.movie.MoviePage;
 import com.thanh.cinetogether.catalog.domain.MovieProvider;
-import com.thanh.cinetogether.catalog.domain.MovieSummary;
-import com.thanh.cinetogether.catalog.domain.MovieType;
+import com.thanh.cinetogether.catalog.domain.movie.MovieSummary;
+import com.thanh.cinetogether.catalog.domain.movie.MovieType;
+import com.thanh.cinetogether.catalog.infrastructure.kkphim.KKPhimResponses.Category;
+import com.thanh.cinetogether.catalog.infrastructure.kkphim.KKPhimResponses.Data;
+import com.thanh.cinetogether.catalog.infrastructure.kkphim.KKPhimResponses.DetailResponse;
+import com.thanh.cinetogether.catalog.infrastructure.kkphim.KKPhimResponses.EpisodeItem;
+import com.thanh.cinetogether.catalog.infrastructure.kkphim.KKPhimResponses.Item;
+import com.thanh.cinetogether.catalog.infrastructure.kkphim.KKPhimResponses.ListResponse;
+import com.thanh.cinetogether.catalog.infrastructure.kkphim.KKPhimResponses.Movie;
+import com.thanh.cinetogether.catalog.infrastructure.kkphim.KKPhimResponses.Server;
 
 public class KKPhimProvider implements MovieProvider {
 
@@ -51,6 +63,36 @@ public class KKPhimProvider implements MovieProvider {
         return new MoviePage(movies, query.paging().page(), query.paging().size(), hasNext);
     }
 
+    @Override
+    public Optional<MovieDetail> detail(String movieId) {
+        DetailResponse response;
+        try {
+            response = client.get().uri("/phim/{slug}", movieId).retrieve().body(DetailResponse.class);
+        } catch (HttpClientErrorException.NotFound e) {
+            return Optional.empty();
+        }
+        if (response == null || response.movie() == null) {
+            return Optional.empty();
+        }
+        Movie movie = response.movie();
+
+        // A movie can be on several servers that list the same episodes: keep each episode once, first server wins.
+        Map<String, Episode> episodes = new LinkedHashMap<>();
+        for (Server server : response.episodes() == null ? List.<Server>of() : response.episodes()) {
+            for (EpisodeItem item : server.serverData() == null ? List.<EpisodeItem>of() : server.serverData()) {
+                if (item.slug() != null) {
+                    episodes.putIfAbsent(item.slug(),
+                            new Episode(item.slug(), item.name() != null ? item.name() : item.slug()));
+                }
+            }
+        }
+        return Optional.of(new MovieDetail(KEY, movie.slug() != null ? movie.slug() : movieId, movie.name(),
+                KKPhimMapping.movieType(movie.type()), KKPhimMapping.plainText(movie.content()),
+                KKPhimMapping.imageUrl(null, movie.posterUrl()),
+                movie.category() == null ? List.of() : movie.category().stream().map(Category::name).toList(),
+                List.copyOf(episodes.values())));
+    }
+
     // The provider has no type parameter: it filters by type through a different list, and its search cannot
     // filter by type at all.
     private URI listUri(UriBuilder uriBuilder, BrowseQuery query, boolean searching) {
@@ -79,25 +121,6 @@ public class KKPhimProvider implements MovieProvider {
             return "phim-le";
         }
         return type == MovieType.SERIES ? "phim-bo" : "phim-moi-cap-nhat";
-    }
-
-    record ListResponse(Data data) {
-    }
-
-    record Data(List<Item> items, Params params, @JsonProperty("APP_DOMAIN_CDN_IMAGE") String cdnImageDomain) {
-    }
-
-    record Params(Pagination pagination) {
-    }
-
-    record Pagination(int currentPage, int totalPages) {
-    }
-
-    record Item(String name, String slug, String type, @JsonProperty("poster_url") String posterUrl, Integer year,
-            List<Category> category) {
-    }
-
-    record Category(String name) {
     }
 
 }

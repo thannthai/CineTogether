@@ -1,4 +1,4 @@
-package com.thanh.cinetogether.catalog.domain;
+package com.thanh.cinetogether.catalog.domain.movie;
 
 import java.util.List;
 

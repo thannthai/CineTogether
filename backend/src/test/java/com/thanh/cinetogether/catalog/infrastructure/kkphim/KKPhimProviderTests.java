@@ -1,4 +1,4 @@
-package com.thanh.cinetogether.catalog.infrastructure;
+package com.thanh.cinetogether.catalog.infrastructure.kkphim;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -8,17 +8,20 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.thanh.cinetogether.catalog.domain.BrowseQuery;
-import com.thanh.cinetogether.catalog.domain.MoviePage;
-import com.thanh.cinetogether.catalog.domain.MovieSummary;
-import com.thanh.cinetogether.catalog.domain.MovieType;
-import com.thanh.cinetogether.catalog.domain.Paging;
+import com.thanh.cinetogether.catalog.domain.browse.BrowseQuery;
+import com.thanh.cinetogether.catalog.domain.movie.Episode;
+import com.thanh.cinetogether.catalog.domain.movie.MovieDetail;
+import com.thanh.cinetogether.catalog.domain.movie.MoviePage;
+import com.thanh.cinetogether.catalog.domain.movie.MovieSummary;
+import com.thanh.cinetogether.catalog.domain.movie.MovieType;
+import com.thanh.cinetogether.catalog.domain.browse.Paging;
 
 class KKPhimProviderTests {
 
@@ -122,6 +125,56 @@ class KKPhimProviderTests {
 
         assertThat(page.items()).containsExactly(
                 new MovieSummary("kkphim", "bare", "Bare", MovieType.SERIES, null, null, List.of()));
+    }
+
+    @Test
+    void detailMapsTheMovieAndItsEpisodes() {
+        server.respond("/phim/movie-one", """
+                {"status": true, "msg": "done",
+                 "movie": {"name": "Movie One", "slug": "movie-one", "type": "series",
+                           "content": "<p>First <b>line</b></p><p>Second &amp; last</p>",
+                           "poster_url": "https://img.example/one.jpg", "category": [{"name": "Drama"}]},
+                 "episodes": [{"server_name": "A", "server_data": [
+                   {"name": "Tập 1", "slug": "tap-1"}, {"name": "Tập 2", "slug": "tap-2"}]}]}
+                """);
+
+        Optional<MovieDetail> detail = provider.detail("movie-one");
+
+        assertThat(detail).contains(new MovieDetail("kkphim", "movie-one", "Movie One", MovieType.SERIES,
+                "First line\nSecond & last", "https://img.example/one.jpg", List.of("Drama"),
+                List.of(new Episode("tap-1", "Tập 1"), new Episode("tap-2", "Tập 2"))));
+    }
+
+    @Test
+    void episodesOfSeveralServersAreMergedOncePerSlugInOrder() {
+        server.respond("/phim/movie-one", """
+                {"movie": {"name": "Movie One", "slug": "movie-one", "type": "series"},
+                 "episodes": [
+                   {"server_name": "A", "server_data": [
+                     {"name": "Tập 1", "slug": "tap-1"}, {"name": "Tập 2", "slug": "tap-2"}]},
+                   {"server_name": "B", "server_data": [
+                     {"name": "Tập 2 (B)", "slug": "tap-2"}, {"name": "Tập 3", "slug": "tap-3"}]}]}
+                """);
+
+        Optional<MovieDetail> detail = provider.detail("movie-one");
+
+        assertThat(detail.orElseThrow().episodes()).containsExactly(
+                new Episode("tap-1", "Tập 1"), new Episode("tap-2", "Tập 2"), new Episode("tap-3", "Tập 3"));
+    }
+
+    @Test
+    void aDetailWithMissingOptionalFieldsIsStillMapped() {
+        server.respond("/phim/bare", "{\"movie\": {\"name\": \"Bare\", \"slug\": \"bare\"}}");
+
+        Optional<MovieDetail> detail = provider.detail("bare");
+
+        assertThat(detail).contains(new MovieDetail("kkphim", "bare", "Bare", MovieType.SERIES, null, null,
+                List.of(), List.of()));
+    }
+
+    @Test
+    void aMovieTheProviderDoesNotKnowIsEmpty() {
+        assertThat(provider.detail("missing")).isEmpty();
     }
 
     private Map<String, String> lastQuery() {

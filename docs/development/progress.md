@@ -133,7 +133,16 @@ variables so they are encoded. Verified with `./gradlew test` (104 tests pass) a
 (`FakeProviderServer`), and once with a throwaway test against the real API (lists, filters, search with `&` and
 accents). Not done yet: provider failures and timeouts (behavior 3), details with episodes (2b), playback source (2c).
 
-Next: behavior 2b, movie details with episodes.
+Behavior 2b (details with episodes) is done: `MovieProvider.detail` returns `Optional<MovieDetail>`, empty when the
+provider answers 404. `KKPhimProvider` reads `GET /phim/{slug}`, removes HTML from the description
+(`KKPhimMapping.plainText`; the real descriptions all contain HTML), and merges the episodes of several servers once
+per slug, first server wins. Verified with `./gradlew test` (116 tests pass) and once with a throwaway test against the
+real API (24 movies: clean descriptions, episodes and posters present, unknown slug is empty).
+
+Catalog code is grouped as `domain/movie`, `domain/browse` and `infrastructure/kkphim`, and the security tests that sat at
+the test root now live in `config` (see `architecture.md`). The provider's JSON records are in `KKPhimResponses`.
+
+Next: behavior 2c, resolving a playback source (`.m3u8`) for an episode.
 
 WebSocket `AUTH` and token renewal belong to the WebSocket milestone.
 

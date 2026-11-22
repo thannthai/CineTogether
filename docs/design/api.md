@@ -249,6 +249,10 @@ Only collections supported by the provider or curated data are returned.
 }
 ```
 
+`synopsis` is plain text: the provider's HTML is removed, so clients show it as text. A single-part movie has one entry in
+`episodes`. When the provider lists the same episode on several servers, `episodes` contains it once, identified by
+`episodeId` (the provider's episode slug).
+
 **Playback source request:**
 
 ```http
