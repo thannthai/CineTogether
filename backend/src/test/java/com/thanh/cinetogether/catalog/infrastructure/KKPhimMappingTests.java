@@ -1,4 +1,4 @@
-package com.thanh.cinetogether.catalog.infrastructure.kkphim;
+package com.thanh.cinetogether.catalog.infrastructure;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

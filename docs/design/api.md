@@ -271,7 +271,10 @@ Response:
 }
 ```
 
-The backend resolves and validates the selected movie and episode through its provider adapter.
+The backend resolves and validates the selected movie and episode through its provider adapter. `streamUrl` is an
+`http` or `https` link to a `.m3u8` playlist; the provider's embed-page links are never used. When the provider lists the
+episode on several servers, the first server that has an HLS link for it is used. An unknown movie or episode, or an
+episode with no HLS link, is `404`. The link comes from a third-party server, so the backend cannot check that it plays.
 
 Each browser streams independently from an authorized source. The Spring Boot backend does not relay video bytes.
 

@@ -1,4 +1,4 @@
-package com.thanh.cinetogether.catalog.infrastructure.kkphim;
+package com.thanh.cinetogether.catalog.infrastructure;
 
 import java.util.List;
 
@@ -39,7 +39,7 @@ final class KKPhimResponses {
     record Server(@JsonProperty("server_data") List<EpisodeItem> serverData) {
     }
 
-    record EpisodeItem(String name, String slug) {
+    record EpisodeItem(String name, String slug, @JsonProperty("link_m3u8") String linkM3u8) {
     }
 
 }

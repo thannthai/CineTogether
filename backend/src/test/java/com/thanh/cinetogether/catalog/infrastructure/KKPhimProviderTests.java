@@ -1,4 +1,4 @@
-package com.thanh.cinetogether.catalog.infrastructure.kkphim;
+package com.thanh.cinetogether.catalog.infrastructure;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -14,11 +14,15 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import com.thanh.cinetogether.catalog.domain.browse.BrowseQuery;
 import com.thanh.cinetogether.catalog.domain.movie.Episode;
 import com.thanh.cinetogether.catalog.domain.movie.MovieDetail;
 import com.thanh.cinetogether.catalog.domain.movie.MoviePage;
+import com.thanh.cinetogether.catalog.domain.movie.PlaybackSource;
+import com.thanh.cinetogether.catalog.domain.movie.StreamFormat;
 import com.thanh.cinetogether.catalog.domain.movie.MovieSummary;
 import com.thanh.cinetogether.catalog.domain.movie.MovieType;
 import com.thanh.cinetogether.catalog.domain.browse.Paging;
@@ -175,6 +179,52 @@ class KKPhimProviderTests {
     @Test
     void aMovieTheProviderDoesNotKnowIsEmpty() {
         assertThat(provider.detail("missing")).isEmpty();
+    }
+
+    private static final String TWO_SERVERS = """
+            {"movie": {"name": "Movie One", "slug": "movie-one"},
+             "episodes": [
+               {"server_name": "A", "server_data": [
+                 {"name": "Tập 1", "slug": "tap-1", "link_embed": "https://player.example/a1"},
+                 {"name": "Tập 2", "slug": "tap-2", "link_m3u8": "https://a.example/2.m3u8"}]},
+               {"server_name": "B", "server_data": [
+                 {"name": "Tập 1", "slug": "tap-1", "link_m3u8": "https://b.example/1.m3u8"},
+                 {"name": "Tập 2", "slug": "tap-2", "link_m3u8": "https://b.example/2.m3u8"}]}]}
+            """;
+
+    @Test
+    void playbackSourceIsTheHlsLinkOfTheFirstServerThatHasOne() {
+        server.respond("/phim/movie-one", TWO_SERVERS);
+
+        assertThat(provider.playbackSource("movie-one", "tap-2")).contains(new PlaybackSource("kkphim", "movie-one",
+                "tap-2", "https://a.example/2.m3u8", StreamFormat.HLS));
+    }
+
+    @Test
+    void aServerWithoutAnHlsLinkForTheEpisodeIsSkipped() {
+        server.respond("/phim/movie-one", TWO_SERVERS);
+
+        assertThat(provider.playbackSource("movie-one", "tap-1").orElseThrow().streamUrl())
+                .isEqualTo("https://b.example/1.m3u8");
+    }
+
+    @Test
+    void anUnknownEpisodeOrMovieIsEmpty() {
+        server.respond("/phim/movie-one", TWO_SERVERS);
+
+        assertThat(provider.playbackSource("movie-one", "tap-9")).isEmpty();
+        assertThat(provider.playbackSource("missing", "tap-1")).isEmpty();
+    }
+
+    // Only an http(s) link to a .m3u8 playlist is a usable HLS source; anything else is not trusted.
+    @ParameterizedTest
+    @ValueSource(strings = {"https://player.example/embed", "javascript:alert(1)", "https://x.example/video.mp4",
+            "ftp://x.example/a.m3u8", ""})
+    void aLinkThatIsNotAnHlsPlaylistGivesNoSource(String link) {
+        server.respond("/phim/movie-one", "{\"movie\": {\"name\": \"M\", \"slug\": \"movie-one\"}, \"episodes\": "
+                + "[{\"server_data\": [{\"name\": \"Tập 1\", \"slug\": \"tap-1\", \"link_m3u8\": \"" + link + "\"}]}]}");
+
+        assertThat(provider.playbackSource("movie-one", "tap-1")).isEmpty();
     }
 
     private Map<String, String> lastQuery() {

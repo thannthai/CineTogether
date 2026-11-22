@@ -1,5 +1,6 @@
-package com.thanh.cinetogether.catalog.infrastructure.kkphim;
+package com.thanh.cinetogether.catalog.infrastructure;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -42,6 +43,20 @@ final class KKPhimMapping {
                 .filter(line -> !line.isEmpty())
                 .collect(Collectors.joining("\n"));
         return result.isEmpty() ? null : result;
+    }
+
+    // Only an http(s) link to a .m3u8 playlist is a usable HLS source; the link comes from a third party.
+    static boolean isHlsUrl(String link) {
+        if (link == null || link.isBlank()) {
+            return false;
+        }
+        try {
+            URI uri = URI.create(link);
+            return ("http".equals(uri.getScheme()) || "https".equals(uri.getScheme()))
+                    && uri.getPath() != null && uri.getPath().endsWith(".m3u8");
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 
     // The provider sends image paths relative to a CDN base in some responses and full URLs in others.

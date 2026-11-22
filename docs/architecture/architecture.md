@@ -144,8 +144,8 @@ the module's root package are visible to other modules. `ModularityTests` enforc
 returned by `application` and serialized as JSON lives in `application`, not `web`, to keep the dependency direction.
 
 Inside one of these packages, files that belong together are grouped by concept, not by count: for example
-`catalog/domain/movie` (movie types), `catalog/domain/browse` (query rules) and `catalog/infrastructure/kkphim`
-(everything specific to one provider, so a second provider gets its own folder). Tests mirror the production packages;
+`catalog/domain/movie` (movie types) and `catalog/domain/browse` (query rules). With a single provider the
+`KKPhim*` classes stay together in `catalog/infrastructure`; a second provider would get its own folder. Tests mirror the production packages;
 only checks that span the whole application (`ModularityTests`) and shared test setup stay at the test root.
 
 ## 5. Communication & Key Flows

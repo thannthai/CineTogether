@@ -1,4 +1,4 @@
-package com.thanh.cinetogether.catalog.infrastructure.kkphim;
+package com.thanh.cinetogether.catalog.infrastructure;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

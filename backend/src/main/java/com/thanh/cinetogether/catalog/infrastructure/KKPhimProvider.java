@@ -1,4 +1,4 @@
-package com.thanh.cinetogether.catalog.infrastructure.kkphim;
+package com.thanh.cinetogether.catalog.infrastructure;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -15,17 +15,19 @@ import com.thanh.cinetogether.catalog.domain.browse.BrowseQuery;
 import com.thanh.cinetogether.catalog.domain.movie.Episode;
 import com.thanh.cinetogether.catalog.domain.movie.MovieDetail;
 import com.thanh.cinetogether.catalog.domain.movie.MoviePage;
+import com.thanh.cinetogether.catalog.domain.movie.PlaybackSource;
+import com.thanh.cinetogether.catalog.domain.movie.StreamFormat;
 import com.thanh.cinetogether.catalog.domain.MovieProvider;
 import com.thanh.cinetogether.catalog.domain.movie.MovieSummary;
 import com.thanh.cinetogether.catalog.domain.movie.MovieType;
-import com.thanh.cinetogether.catalog.infrastructure.kkphim.KKPhimResponses.Category;
-import com.thanh.cinetogether.catalog.infrastructure.kkphim.KKPhimResponses.Data;
-import com.thanh.cinetogether.catalog.infrastructure.kkphim.KKPhimResponses.DetailResponse;
-import com.thanh.cinetogether.catalog.infrastructure.kkphim.KKPhimResponses.EpisodeItem;
-import com.thanh.cinetogether.catalog.infrastructure.kkphim.KKPhimResponses.Item;
-import com.thanh.cinetogether.catalog.infrastructure.kkphim.KKPhimResponses.ListResponse;
-import com.thanh.cinetogether.catalog.infrastructure.kkphim.KKPhimResponses.Movie;
-import com.thanh.cinetogether.catalog.infrastructure.kkphim.KKPhimResponses.Server;
+import com.thanh.cinetogether.catalog.infrastructure.KKPhimResponses.Category;
+import com.thanh.cinetogether.catalog.infrastructure.KKPhimResponses.Data;
+import com.thanh.cinetogether.catalog.infrastructure.KKPhimResponses.DetailResponse;
+import com.thanh.cinetogether.catalog.infrastructure.KKPhimResponses.EpisodeItem;
+import com.thanh.cinetogether.catalog.infrastructure.KKPhimResponses.Item;
+import com.thanh.cinetogether.catalog.infrastructure.KKPhimResponses.ListResponse;
+import com.thanh.cinetogether.catalog.infrastructure.KKPhimResponses.Movie;
+import com.thanh.cinetogether.catalog.infrastructure.KKPhimResponses.Server;
 
 public class KKPhimProvider implements MovieProvider {
 
@@ -91,6 +93,26 @@ public class KKPhimProvider implements MovieProvider {
                 KKPhimMapping.imageUrl(null, movie.posterUrl()),
                 movie.category() == null ? List.of() : movie.category().stream().map(Category::name).toList(),
                 List.copyOf(episodes.values())));
+    }
+
+    @Override
+    public Optional<PlaybackSource> playbackSource(String movieId, String episodeId) {
+        DetailResponse response;
+        try {
+            response = client.get().uri("/phim/{slug}", movieId).retrieve().body(DetailResponse.class);
+        } catch (HttpClientErrorException.NotFound e) {
+            return Optional.empty();
+        }
+        if (response == null || response.episodes() == null) {
+            return Optional.empty();
+        }
+        // The first server that has an HLS link for this episode wins; the embed page links are not used.
+        return response.episodes().stream()
+                .filter(server -> server.serverData() != null)
+                .flatMap(server -> server.serverData().stream())
+                .filter(item -> episodeId.equals(item.slug()) && KKPhimMapping.isHlsUrl(item.linkM3u8()))
+                .findFirst()
+                .map(item -> new PlaybackSource(KEY, movieId, episodeId, item.linkM3u8(), StreamFormat.HLS));
     }
 
     // The provider has no type parameter: it filters by type through a different list, and its search cannot

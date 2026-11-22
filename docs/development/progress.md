@@ -139,10 +139,17 @@ provider answers 404. `KKPhimProvider` reads `GET /phim/{slug}`, removes HTML fr
 per slug, first server wins. Verified with `./gradlew test` (116 tests pass) and once with a throwaway test against the
 real API (24 movies: clean descriptions, episodes and posters present, unknown slug is empty).
 
-Catalog code is grouped as `domain/movie`, `domain/browse` and `infrastructure/kkphim`, and the security tests that sat at
+Catalog code is grouped as `domain/movie`, `domain/browse` and `infrastructure`, and the security tests that sat at
 the test root now live in `config` (see `architecture.md`). The provider's JSON records are in `KKPhimResponses`.
 
-Next: behavior 2c, resolving a playback source (`.m3u8`) for an episode.
+Behavior 2c (playback source) is done: `MovieProvider.playbackSource(movieId, episodeId)` returns
+`Optional<PlaybackSource>` (HLS); `KKPhimProvider` picks the first server that has an `.m3u8` link for the episode and
+ignores a link that is not an http(s) `.m3u8` URL or is an embed page. Verified with `./gradlew test` (124 tests pass) and
+once with a throwaway test against the real API (24 of 24 episodes resolved). The backend does not check that the stream
+plays; that is for the frontend stage.
+
+Next: behavior 3, provider failures (timeouts, 5xx, invalid JSON) as `PROVIDER_UNAVAILABLE` and an unknown movie as
+`MOVIE_NOT_FOUND`.
 
 WebSocket `AUTH` and token renewal belong to the WebSocket milestone.
 
