@@ -190,7 +190,10 @@ token, before the body is read.
 (`VALIDATION_ERROR`) instead of being adjusted silently.
 
 `type` is `MOVIE` for single-part films and `SERIES` for everything else the provider lists, including animation and TV
-shows.
+shows. The provider cannot filter by type in one request, so the `type` filter is limited: `type=MOVIE` returns the
+single-part films, `type=SERIES` returns only the provider's TV series list (not animation or TV shows, which still
+appear, labelled `SERIES`, when there is no `type` filter and in search results), and `type` is ignored when `q` is
+present because the provider's search cannot filter by it.
 
 The API should not invent popularity statistics or filtering capabilities unsupported by the movie provider.
 

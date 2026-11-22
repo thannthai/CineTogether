@@ -126,7 +126,14 @@ pass). Adapter use of the provider: lists and search come from `/v1/api/danh-sac
 (`/v1/api/danh-sach/phim-moi-cap-nhat` has `type` and categories, unlike the older `/danh-sach/phim-moi-cap-nhat`), and
 details from `/phim/{slug}`.
 
-Next: behavior 2, the KKPhim adapter against a local fake provider server.
+Behavior 2a (browse and search) is done: `MovieProvider.browse` and `KKPhimProvider` (`RestClient`) read lists from
+`/v1/api/danh-sach/{phim-moi-cap-nhat|phim-le|phim-bo}` and search from `/v1/api/tim-kiem`, with `category`, `country`,
+`page` and `limit` (the provider ignores a `type` parameter, so type picks the list). User values go in as URI
+variables so they are encoded. Verified with `./gradlew test` (104 tests pass) against a local fake provider
+(`FakeProviderServer`), and once with a throwaway test against the real API (lists, filters, search with `&` and
+accents). Not done yet: provider failures and timeouts (behavior 3), details with episodes (2b), playback source (2c).
+
+Next: behavior 2b, movie details with episodes.
 
 WebSocket `AUTH` and token renewal belong to the WebSocket milestone.
 
