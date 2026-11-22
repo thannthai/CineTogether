@@ -93,22 +93,40 @@ Authentication & User Profile
 
 ## Current Task
 
-Authentication & User Profile. Development Environment Setup is complete (database, Flyway V1, backend tests, Supabase
-JWT configuration, React frontend, and frontend-to-backend connectivity are all verified). Task 1 (stateless hardening)
-is done; the next steps are below.
+Movie Catalog & Watch Alone, backend first. Authentication & User Profile is complete on the backend (Tasks 1 to 6);
+two parts are deliberately postponed, so its milestone box stays unchecked:
+
+- the React login, register and logout screens (FR-AUTH-04, former Task 8), to be built with the whole frontend;
+- an end-to-end check with a real Supabase token (`GET` and `PATCH /me`, name from `display_name`), still to be run
+  with `backend/http/auth.http`.
+
+The per-endpoint Security rules (former Task 7) are merged into the catalog work, because the first public endpoints
+(catalog) and the first authenticated one that is not `/me` (playback) appear there.
+
+Catalog plan (agreed, not started): module `catalog` with the same four-package layout as `identity`; a `MovieProvider`
+interface with a `KKPhimProvider` adapter (`phimapi.com`, the only provider, chosen by the user); tests use a local fake
+provider server, never the real API. Order: pure rules, adapter against the fake server, provider failures
+(`PROVIDER_UNAVAILABLE`, new `MOVIE_NOT_FOUND`), `GET /movies`, `GET /movies/{providerKey}/{movieId}`,
+`GET /catalog/home` (`featured` is the 5 newest movies, a derived value), `GET .../playback` (authenticated), access
+rules. `episodeId` is the episode slug; playback uses the first provider server that has an `.m3u8` link for it. No
+cache in the MVP.
 
 ## Blockers
 
 - WebSocket origin restrictions are not configured yet (needed with the WebSocket milestone).
+- Provider rights: `BR-MOV-03` requires usage rights for production playback, and KKPhim is unofficial with no license
+  guarantee. Treat it as a development and demo source until rights are confirmed.
 
 ## Next Task
 
-Remaining Authentication & User Profile work (Tasks 1 to 6 are done), in order:
+Catalog behavior 1 (pure rules) is done: `Paging` (defaults, limits, 400 on invalid values) and `MovieType` in
+`catalog/domain`, and the KKPhim-specific mapping (`single` is a MOVIE and every other type a SERIES, provider pages
+start at 1, `hasNext`, absolute image URLs) in `catalog/infrastructure`. Verified with `./gradlew test` (98 tests
+pass). Adapter use of the provider: lists and search come from `/v1/api/danh-sach/{slug}` and `/v1/api/tim-kiem`
+(`/v1/api/danh-sach/phim-moi-cap-nhat` has `type` and categories, unlike the older `/danh-sach/phim-moi-cap-nhat`), and
+details from `/phim/{slug}`.
 
-1. Per-endpoint Security rules for the endpoints that exist so far (public catalog and public room rules come with
-   their features).
-2. Minimal React login/register/logout screen (FR-AUTH-04); remove the temporary setup check from
-   `frontend/src/App.tsx`.
+Next: behavior 2, the KKPhim adapter against a local fake provider server.
 
 WebSocket `AUTH` and token renewal belong to the WebSocket milestone.
 

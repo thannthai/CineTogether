@@ -186,6 +186,12 @@ token, before the body is read.
 | `page`    | Integer | Default `0`                |
 | `size`    | Integer | Default `20`, maximum `50` |
 
+`page` starts at `0`. A negative `page`, or a `size` below `1` or above `50`, is rejected with `400`
+(`VALIDATION_ERROR`) instead of being adjusted silently.
+
+`type` is `MOVIE` for single-part films and `SERIES` for everything else the provider lists, including animation and TV
+shows.
+
 The API should not invent popularity statistics or filtering capabilities unsupported by the movie provider.
 
 `GET /movies` returns:
