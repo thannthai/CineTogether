@@ -49,6 +49,21 @@ Ask for clarification when a change would affect business rules, public contract
 - Do not implement out-of-scope features, including screen sharing, voice/camera, watchlists, recommendations, and
   advanced public-room search or moderation.
 
+## Frontend Architecture
+
+- Use a pragmatic feature-first React + TypeScript structure.
+- Feature-specific code belongs under `src/features/<feature>/`.
+- Shared, genuinely reusable code belongs under `src/shared/`.
+- Do not move code to `shared` merely because it is reused twice.
+- A feature imports another feature only through its `index.ts`, never its internals.
+- Keep API/data access separate from presentation components.
+- Do not introduce Repository/Service/UseCase abstractions without a concrete need.
+- Do not add a router, UI library, or state library without discussing it first.
+- Create folders as the work reaches them; the full target layout is documented, not pre-created.
+- Figma is the visual source of truth; `docs/design/api.md` is the source of truth for data and behavior.
+- Port Figma Make output into this structure instead of keeping its generated layout.
+- See `docs/architecture/conventions.md` for detailed frontend conventions.
+
 ## Development Workflow
 
 1. Inspect relevant code, documentation, and Git status before editing.

@@ -192,6 +192,9 @@ and wired to the API: Supabase client (register with a display-name field, sign 
 hls.js player, `GET` and `PATCH /me`. Still to check there: a new account whose sign-up carries `data.display_name`.
 Closing the Authentication milestone box needs those login screens.
 
+Frontend conventions were agreed on 2026-11-23: feature-first structure and rules in `docs/architecture/conventions.md`,
+short summary in `CLAUDE.md`. The folders are created as the work reaches them.
+
 WebSocket `AUTH` and token renewal belong to the WebSocket milestone.
 
 ## Notes
