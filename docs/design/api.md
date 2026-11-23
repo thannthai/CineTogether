@@ -115,6 +115,7 @@ Core error codes:
 - `HOST_ONLY`
 - `INVALID_SELECTION`
 - `STALE_PLAYBACK_VERSION`
+- `MOVIE_NOT_FOUND`
 - `PROVIDER_UNAVAILABLE`
 - `RATE_LIMITED`
 - `AUTH_FAILED` (WebSocket `AUTH` rejected)
@@ -123,7 +124,7 @@ The frontend maps error codes to user-facing Vietnamese messages.
 
 A `401` always has the same body, whatever the reason (missing, malformed, expired, or wrongly signed token), so it does
 not reveal why a token was rejected. The reason is in the standard `WWW-Authenticate: Bearer error="invalid_token"`
-header. `UNAUTHENTICATED`, `VALIDATION_ERROR` and `PROVIDER_UNAVAILABLE` are implemented; `FORBIDDEN` is implemented with the
+header. `UNAUTHENTICATED`, `VALIDATION_ERROR`, `MOVIE_NOT_FOUND` and `PROVIDER_UNAVAILABLE` are implemented; `FORBIDDEN` is implemented with the
 first feature that needs it.
 
 ## 2. REST API

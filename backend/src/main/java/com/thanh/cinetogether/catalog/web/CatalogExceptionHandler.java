@@ -7,6 +7,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.thanh.cinetogether.catalog.domain.MovieNotFoundException;
 import com.thanh.cinetogether.catalog.domain.ProviderUnavailableException;
 import com.thanh.cinetogether.catalog.domain.browse.InvalidPagingException;
 
@@ -18,6 +19,14 @@ class CatalogExceptionHandler {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
         problem.setType(URI.create("about:blank"));
         problem.setProperty("code", "VALIDATION_ERROR");
+        return problem;
+    }
+
+    @ExceptionHandler(MovieNotFoundException.class)
+    ProblemDetail movieNotFound(MovieNotFoundException exception) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
+        problem.setType(URI.create("about:blank"));
+        problem.setProperty("code", "MOVIE_NOT_FOUND");
         return problem;
     }
 

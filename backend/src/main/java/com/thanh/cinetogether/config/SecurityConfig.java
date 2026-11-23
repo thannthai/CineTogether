@@ -47,7 +47,7 @@ class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .addFilterAfter(new ProfileProvisioningFilter(profileProvisioner), BearerTokenAuthenticationFilter.class)
                 .authorizeHttpRequests(requests -> requests
-                        .requestMatchers(HttpMethod.GET, "/api/v1/movies").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/movies", "/api/v1/movies/*/*").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .authenticationEntryPoint(new ProblemJsonAuthenticationEntryPoint(jsonMapper))

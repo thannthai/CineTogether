@@ -162,7 +162,12 @@ uses the single configured provider (no `providerKey` parameter); an unavailable
 (`playback`) stays authenticated (option A). Verified with `./gradlew test` (139 tests pass) and by running the application
 against the real provider (public calls, filters, search, bad parameters).
 
-Next: behavior 5, `GET /movies/{providerKey}/{movieId}` (details with episodes; 404 `MOVIE_NOT_FOUND`).
+Behavior 5 (`GET /movies/{providerKey}/{movieId}`) is done: public; `Catalog.detail` answers 404 `MOVIE_NOT_FOUND` when
+the `providerKey` is not the configured provider (the provider is not called) or the provider does not know the movie.
+`SecurityConfig` permits `/api/v1/movies/*/*`, which does not match `/playback`. Verified with `./gradlew test` (143
+tests pass).
+
+Next: behavior 6, `GET /catalog/home`.
 
 WebSocket `AUTH` and token renewal belong to the WebSocket milestone.
 
