@@ -170,7 +170,12 @@ tests pass).
 Behavior 6 (`GET /catalog/home`) is done: public, derived from one `browse` call (`featured` = first 5, one section
 `new-updates`). Verified with `./gradlew test` (147 tests pass).
 
-Next: behavior 7, `GET /movies/{providerKey}/{movieId}/playback` (authenticated).
+Behavior 7 (`GET /movies/{providerKey}/{movieId}/playback`) is done: authenticated (it is not matched by the public
+`/movies/*/*` rule; a test with a widened matcher turned red, so it guards this). Same 404 `MOVIE_NOT_FOUND` rules as the
+details; a missing `episodeId` is 400 `VALIDATION_ERROR` (new handler in `GlobalExceptionHandler`). Verified with
+`./gradlew test` (153 tests pass).
+
+Next: behavior 8, final access rules and documentation cleanup, then a check against the real provider.
 
 WebSocket `AUTH` and token renewal belong to the WebSocket milestone.
 

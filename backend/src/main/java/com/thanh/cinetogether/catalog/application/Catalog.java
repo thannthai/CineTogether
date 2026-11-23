@@ -11,6 +11,7 @@ import com.thanh.cinetogether.catalog.domain.browse.Home;
 import com.thanh.cinetogether.catalog.domain.browse.Paging;
 import com.thanh.cinetogether.catalog.domain.movie.MovieDetail;
 import com.thanh.cinetogether.catalog.domain.movie.MoviePage;
+import com.thanh.cinetogether.catalog.domain.movie.PlaybackSource;
 import com.thanh.cinetogether.catalog.domain.movie.MovieSummary;
 
 @Service
@@ -41,6 +42,14 @@ public class Catalog {
             throw new MovieNotFoundException(providerKey, movieId);
         }
         return provider.detail(movieId).orElseThrow(() -> new MovieNotFoundException(providerKey, movieId));
+    }
+
+    public PlaybackSource playback(String providerKey, String movieId, String episodeId) {
+        if (!provider.key().equals(providerKey)) {
+            throw new MovieNotFoundException(providerKey, movieId);
+        }
+        return provider.playbackSource(movieId, episodeId)
+                .orElseThrow(() -> new MovieNotFoundException(providerKey, movieId));
     }
 
 }

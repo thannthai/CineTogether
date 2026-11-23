@@ -11,6 +11,7 @@ import com.thanh.cinetogether.catalog.domain.browse.BrowseQuery;
 import com.thanh.cinetogether.catalog.domain.browse.Paging;
 import com.thanh.cinetogether.catalog.domain.movie.MovieDetail;
 import com.thanh.cinetogether.catalog.domain.movie.MoviePage;
+import com.thanh.cinetogether.catalog.domain.movie.PlaybackSource;
 import com.thanh.cinetogether.catalog.domain.movie.MovieType;
 
 @RestController
@@ -33,6 +34,12 @@ class MoviesController {
     @GetMapping("/{providerKey}/{movieId}")
     MovieDetail detail(@PathVariable String providerKey, @PathVariable String movieId) {
         return catalog.detail(providerKey, movieId);
+    }
+
+    @GetMapping("/{providerKey}/{movieId}/playback")
+    PlaybackSource playback(@PathVariable String providerKey, @PathVariable String movieId,
+            @RequestParam String episodeId) {
+        return catalog.playback(providerKey, movieId, episodeId);
     }
 
 }
