@@ -167,7 +167,10 @@ the `providerKey` is not the configured provider (the provider is not called) or
 `SecurityConfig` permits `/api/v1/movies/*/*`, which does not match `/playback`. Verified with `./gradlew test` (143
 tests pass).
 
-Next: behavior 6, `GET /catalog/home`.
+Behavior 6 (`GET /catalog/home`) is done: public, derived from one `browse` call (`featured` = first 5, one section
+`new-updates`). Verified with `./gradlew test` (147 tests pass).
+
+Next: behavior 7, `GET /movies/{providerKey}/{movieId}/playback` (authenticated).
 
 WebSocket `AUTH` and token renewal belong to the WebSocket milestone.
 

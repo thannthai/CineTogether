@@ -232,6 +232,9 @@ Each `MovieSummary` includes `providerKey`, `movieId`, `title`, `type`, and opti
 
 Only collections supported by the provider or curated data are returned.
 
+The provider has no "featured" list, so the home page is derived from one provider call (the first page of the newest
+updates): `featured` is the first 5 movies and `new-updates` holds the whole page. An unavailable provider is `503`.
+
 **Movie detail response:**
 
 ```json
