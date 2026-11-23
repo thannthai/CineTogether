@@ -57,3 +57,11 @@ Authorization: Bearer {{accessToken}}
 
 ### 4. Same call without a token: expect 401 with WWW-Authenticate: Bearer.
 GET {{apiBaseUrl}}/me
+
+### 5. Playback needs the token (catalog reads are public, but resolving a stream is not). The movie id is an example
+### taken from the home page; if it is gone, pick another from GET {{apiBaseUrl}}/catalog/home.
+GET {{apiBaseUrl}}/movies/kkphim/day-cuong-duc-vong-troi-buoc-duc-vong/playback?episodeId=tap-01
+Authorization: Bearer {{accessToken}}
+
+### 6. Same call without a token: expect 401.
+GET {{apiBaseUrl}}/movies/kkphim/day-cuong-duc-vong-troi-buoc-duc-vong/playback?episodeId=tap-01

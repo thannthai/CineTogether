@@ -161,8 +161,14 @@ Catalog: `GET /api/v1/catalog/home`, `GET /api/v1/movies` and `GET /api/v1/movie
 in `application.yaml` (`app.catalog.kkphim.base-url`, default `https://phimapi.com`, with `connect-timeout` 3 s and
 `read-timeout` 5 s). Verified by running the application and calling it with `curl`: the newest list, a type, genre and
 country filter, paging, and a search containing `&` all returned real data; `size=51`, `type=BOOK` and `page=abc` gave
-`400` (`VALIDATION_ERROR`), and `/api/v1/me` was still `401`. Not yet checked against the real provider: details, home and playback (only the mocked provider and the fake server
-were used), and the response when the provider is down.
+`400` (`VALIDATION_ERROR`), and `/api/v1/me` was still `401`. Also verified against the real provider: home, details, unknown movie (404), wrong provider key (404), and `playback`
+without a token (401). With the provider address pointed at a closed port, the public endpoints answered `503`
+(`PROVIDER_UNAVAILABLE`) at once. A real HLS link (master playlist, variant playlist and a `.ts` segment) answered `200`/`206` with
+`Access-Control-Allow-Origin: *`, so a browser on another origin can read it (a plain GET needs no preflight). Not yet
+checked: `playback` with a real token, a slow provider, and playing the stream in a browser. The real provider is
+sometimes slow or fails (one `503` after about 3 s, one fast `503` on `playback`); the cause of every `503` is logged
+as a `WARN` line, while the client only sees the fixed message. Opening an `.m3u8` link directly in desktop Chrome shows
+an empty player: Chrome cannot play HLS without a library such as hls.js.
 
 Profile endpoints: `GET /api/v1/me` returns the caller's `id`, `displayName` and `createdAt`; `PATCH /api/v1/me`
 renames the caller (200 with the updated profile, 400 `VALIDATION_ERROR` for a bad name or body, see
