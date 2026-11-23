@@ -148,8 +148,15 @@ ignores a link that is not an http(s) `.m3u8` URL or is an embed page. Verified 
 once with a throwaway test against the real API (24 of 24 episodes resolved). The backend does not check that the stream
 plays; that is for the frontend stage.
 
-Next: behavior 3, provider failures (timeouts, 5xx, invalid JSON) as `PROVIDER_UNAVAILABLE` and an unknown movie as
-`MOVIE_NOT_FOUND`.
+Behavior 3 (provider failures) is done at the adapter level: `KKPhimProvider` uses a connect timeout (3 s) and a read
+timeout (5 s), and wraps every client failure (timeout, refused connection, 5xx, 4xx other than 404, a body that is not
+JSON, a list without `data`) in `ProviderUnavailableException`; a 404 stays an empty `Optional`. Verified with
+`./gradlew test` (131 tests pass) against the fake provider, which can now answer with an error status or slowly. The
+timeouts are not configurable from `application.yaml` yet, and the HTTP codes (`PROVIDER_UNAVAILABLE`,
+`MOVIE_NOT_FOUND`) are produced later by the web layer.
+
+Next: behavior 4, `GET /movies` (the `catalog` application service and controller, with the provider bean wired from
+configuration).
 
 WebSocket `AUTH` and token renewal belong to the WebSocket milestone.
 

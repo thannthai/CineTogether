@@ -1,22 +1,32 @@
 package com.thanh.cinetogether.catalog.infrastructure;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import com.thanh.cinetogether.catalog.domain.ProviderUnavailableException;
 import com.thanh.cinetogether.catalog.domain.browse.BrowseQuery;
 import com.thanh.cinetogether.catalog.domain.movie.Episode;
 import com.thanh.cinetogether.catalog.domain.movie.MovieDetail;
@@ -225,6 +235,58 @@ class KKPhimProviderTests {
                 + "[{\"server_data\": [{\"name\": \"Tập 1\", \"slug\": \"tap-1\", \"link_m3u8\": \"" + link + "\"}]}]}");
 
         assertThat(provider.playbackSource("movie-one", "tap-1")).isEmpty();
+    }
+
+    private static final BrowseQuery FIRST_PAGE = new BrowseQuery(null, null, null, null, Paging.of(0, 20));
+
+    static Stream<Arguments> everyOperation() {
+        return Stream.of(
+                Arguments.of(Named.<Consumer<KKPhimProvider>>of("browse", p -> p.browse(FIRST_PAGE))),
+                Arguments.of(Named.<Consumer<KKPhimProvider>>of("detail", p -> p.detail("movie-one"))),
+                Arguments.of(Named.<Consumer<KKPhimProvider>>of("playbackSource",
+                        p -> p.playbackSource("movie-one", "tap-1"))));
+    }
+
+    @ParameterizedTest
+    @MethodSource("everyOperation")
+    void aServerErrorMeansTheProviderIsUnavailable(Consumer<KKPhimProvider> operation) {
+        server.respond(LIST_PATH, 500, "oops");
+        server.respond("/phim/movie-one", 500, "oops");
+
+        assertThatThrownBy(() -> operation.accept(provider)).isInstanceOf(ProviderUnavailableException.class);
+    }
+
+    @Test
+    void aResponseThatIsNotJsonMeansTheProviderIsUnavailable() {
+        server.respond(LIST_PATH, "<html>oops</html>");
+
+        assertThatThrownBy(() -> provider.browse(FIRST_PAGE)).isInstanceOf(ProviderUnavailableException.class);
+    }
+
+    @Test
+    void aListResponseWithoutDataMeansTheProviderIsUnavailable() {
+        server.respond(LIST_PATH, "{\"status\": false, \"msg\": \"nope\"}");
+
+        assertThatThrownBy(() -> provider.browse(FIRST_PAGE)).isInstanceOf(ProviderUnavailableException.class);
+    }
+
+    @Test
+    void aProviderSlowerThanTheReadTimeoutMeansItIsUnavailable() {
+        server.respondSlowly(LIST_PATH, LIST_PAGE_ONE_OF_THREE, 1000);
+        KKPhimProvider impatient = new KKPhimProvider(server.baseUrl(), Duration.ofSeconds(1), Duration.ofMillis(200));
+
+        assertThatThrownBy(() -> impatient.browse(FIRST_PAGE)).isInstanceOf(ProviderUnavailableException.class);
+    }
+
+    @Test
+    void aProviderThatRefusesTheConnectionMeansItIsUnavailable() throws IOException {
+        int closedPort;
+        try (ServerSocket socket = new ServerSocket(0)) {
+            closedPort = socket.getLocalPort();
+        }
+        KKPhimProvider unreachable = new KKPhimProvider("http://localhost:" + closedPort);
+
+        assertThatThrownBy(() -> unreachable.browse(FIRST_PAGE)).isInstanceOf(ProviderUnavailableException.class);
     }
 
     private Map<String, String> lastQuery() {

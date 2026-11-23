@@ -11,11 +11,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.sun.net.httpserver.HttpServer;
 
-/** A local stand-in for the provider: serves canned JSON by path and remembers every request it received. */
+/** A local stand-in for the provider: serves canned replies by path and remembers every request it received. */
 final class FakeProviderServer implements AutoCloseable {
 
+    private record Reply(int status, String body, long delayMillis) {
+    }
+
     private final HttpServer server;
-    private final Map<String, String> responses = new ConcurrentHashMap<>();
+    private final Map<String, Reply> replies = new ConcurrentHashMap<>();
     private final List<URI> requests = new CopyOnWriteArrayList<>();
 
     FakeProviderServer() {
@@ -26,10 +29,15 @@ final class FakeProviderServer implements AutoCloseable {
         }
         server.createContext("/", exchange -> {
             requests.add(exchange.getRequestURI());
-            String json = responses.get(exchange.getRequestURI().getPath());
-            byte[] body = (json == null ? "{}" : json).getBytes(StandardCharsets.UTF_8);
+            Reply reply = replies.getOrDefault(exchange.getRequestURI().getPath(), new Reply(404, "{}", 0));
+            try {
+                Thread.sleep(reply.delayMillis());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            byte[] body = reply.body().getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().add("Content-Type", "application/json");
-            exchange.sendResponseHeaders(json == null ? 404 : 200, body.length);
+            exchange.sendResponseHeaders(reply.status(), body.length);
             exchange.getResponseBody().write(body);
             exchange.close();
         });
@@ -41,7 +49,15 @@ final class FakeProviderServer implements AutoCloseable {
     }
 
     void respond(String path, String json) {
-        responses.put(path, json);
+        replies.put(path, new Reply(200, json, 0));
+    }
+
+    void respond(String path, int status, String body) {
+        replies.put(path, new Reply(status, body, 0));
+    }
+
+    void respondSlowly(String path, String json, long delayMillis) {
+        replies.put(path, new Reply(200, json, delayMillis));
     }
 
     List<URI> requests() {

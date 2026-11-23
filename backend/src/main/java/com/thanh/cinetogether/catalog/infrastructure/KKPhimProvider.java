@@ -1,14 +1,18 @@
 package com.thanh.cinetogether.catalog.infrastructure;
 
 import java.net.URI;
+import java.net.http.HttpClient;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriBuilder;
 
 import com.thanh.cinetogether.catalog.domain.browse.BrowseQuery;
@@ -18,6 +22,7 @@ import com.thanh.cinetogether.catalog.domain.movie.MoviePage;
 import com.thanh.cinetogether.catalog.domain.movie.PlaybackSource;
 import com.thanh.cinetogether.catalog.domain.movie.StreamFormat;
 import com.thanh.cinetogether.catalog.domain.MovieProvider;
+import com.thanh.cinetogether.catalog.domain.ProviderUnavailableException;
 import com.thanh.cinetogether.catalog.domain.movie.MovieSummary;
 import com.thanh.cinetogether.catalog.domain.movie.MovieType;
 import com.thanh.cinetogether.catalog.infrastructure.KKPhimResponses.Category;
@@ -36,7 +41,14 @@ public class KKPhimProvider implements MovieProvider {
     private final RestClient client;
 
     public KKPhimProvider(String baseUrl) {
-        this.client = RestClient.builder().baseUrl(baseUrl).build();
+        this(baseUrl, Duration.ofSeconds(3), Duration.ofSeconds(5));
+    }
+
+    public KKPhimProvider(String baseUrl, Duration connectTimeout, Duration readTimeout) {
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(
+                HttpClient.newBuilder().connectTimeout(connectTimeout).build());
+        requestFactory.setReadTimeout(readTimeout);
+        this.client = RestClient.builder().baseUrl(baseUrl).requestFactory(requestFactory).build();
     }
 
     @Override
@@ -47,10 +59,18 @@ public class KKPhimProvider implements MovieProvider {
     @Override
     public MoviePage browse(BrowseQuery query) {
         boolean searching = query.q() != null && !query.q().isBlank();
-        ListResponse response = client.get()
-                .uri(uriBuilder -> listUri(uriBuilder, query, searching))
-                .retrieve()
-                .body(ListResponse.class);
+        ListResponse response;
+        try {
+            response = client.get()
+                    .uri(uriBuilder -> listUri(uriBuilder, query, searching))
+                    .retrieve()
+                    .body(ListResponse.class);
+        } catch (RestClientException e) {
+            throw new ProviderUnavailableException("KKPhim could not be read.", e);
+        }
+        if (response == null || response.data() == null) {
+            throw new ProviderUnavailableException("KKPhim sent a list without data.");
+        }
 
         Data data = response.data();
         List<Item> items = data.items() == null ? List.of() : data.items();
@@ -72,6 +92,8 @@ public class KKPhimProvider implements MovieProvider {
             response = client.get().uri("/phim/{slug}", movieId).retrieve().body(DetailResponse.class);
         } catch (HttpClientErrorException.NotFound e) {
             return Optional.empty();
+        } catch (RestClientException e) {
+            throw new ProviderUnavailableException("KKPhim could not be read.", e);
         }
         if (response == null || response.movie() == null) {
             return Optional.empty();
@@ -102,6 +124,8 @@ public class KKPhimProvider implements MovieProvider {
             response = client.get().uri("/phim/{slug}", movieId).retrieve().body(DetailResponse.class);
         } catch (HttpClientErrorException.NotFound e) {
             return Optional.empty();
+        } catch (RestClientException e) {
+            throw new ProviderUnavailableException("KKPhim could not be read.", e);
         }
         if (response == null || response.episodes() == null) {
             return Optional.empty();
