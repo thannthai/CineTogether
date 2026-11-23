@@ -36,6 +36,11 @@ app:
   cors:
     # Comma-separated browser origins allowed to call /api/**.
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
+  catalog:
+    kkphim:
+      base-url: https://phimapi.com
+      connect-timeout: 3s
+      read-timeout: 5s
 
 server:
   port: 8080

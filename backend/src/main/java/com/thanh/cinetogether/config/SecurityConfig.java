@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -45,7 +46,9 @@ class SecurityConfig {
                 // See the class Javadoc: re-enable CSRF if cookie-based authentication (for example a BFF) is added.
                 .csrf(csrf -> csrf.disable())
                 .addFilterAfter(new ProfileProvisioningFilter(profileProvisioner), BearerTokenAuthenticationFilter.class)
-                .authorizeHttpRequests(requests -> requests.anyRequest().authenticated())
+                .authorizeHttpRequests(requests -> requests
+                        .requestMatchers(HttpMethod.GET, "/api/v1/movies").permitAll()
+                        .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .authenticationEntryPoint(new ProblemJsonAuthenticationEntryPoint(jsonMapper))
                         .jwt(Customizer.withDefaults()))

@@ -123,8 +123,8 @@ The frontend maps error codes to user-facing Vietnamese messages.
 
 A `401` always has the same body, whatever the reason (missing, malformed, expired, or wrongly signed token), so it does
 not reveal why a token was rejected. The reason is in the standard `WWW-Authenticate: Bearer error="invalid_token"`
-header. `UNAUTHENTICATED` and `VALIDATION_ERROR` are implemented; `FORBIDDEN` is implemented with the first feature that needs
-it.
+header. `UNAUTHENTICATED`, `VALIDATION_ERROR` and `PROVIDER_UNAVAILABLE` are implemented; `FORBIDDEN` is implemented with the
+first feature that needs it.
 
 ## 2. REST API
 
@@ -196,6 +196,10 @@ appear, labelled `SERIES`, when there is no `type` filter and in search results)
 present because the provider's search cannot filter by it.
 
 The API should not invent popularity statistics or filtering capabilities unsupported by the movie provider.
+
+A `type` other than `MOVIE` or `SERIES`, or a `page` or `size` that is not a number, is also `400`
+(`VALIDATION_ERROR`). When the movie provider cannot be reached, answers too slowly (3 s to connect, 5 s to read) or sends an
+unusable response, the API answers `503` with code `PROVIDER_UNAVAILABLE`; the detail never exposes the cause.
 
 `GET /movies` returns:
 

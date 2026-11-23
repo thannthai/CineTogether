@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Import;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @WebMvcTest(excludeFilters = @ComponentScan.Filter(type = FilterType.REGEX,
-        pattern = "com\\.thanh\\.cinetogether\\.identity\\..*"))
+        pattern = "com\\.thanh\\.cinetogether\\.(identity|catalog)\\..*"))
 @Import(SecurityConfig.class)
 @interface SecurityWebMvcTest {
 }

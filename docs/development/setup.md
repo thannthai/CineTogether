@@ -156,6 +156,13 @@ the app and sending forged tokens (valid structure, wrong signature):
 | Forged `ES256` token (known kid)| `401 invalid_token`: `Signed JWT rejected: Invalid signature` (JWKS key was used)  |
 | Forged `RS256` token            | `401 invalid_token`: `Another algorithm expected, or no matching key(s) found`     |
 
+Catalog: `GET /api/v1/movies` (public) browses and searches movies through `KKPhimProvider`. The provider is configured
+in `application.yaml` (`app.catalog.kkphim.base-url`, default `https://phimapi.com`, with `connect-timeout` 3 s and
+`read-timeout` 5 s). Verified by running the application and calling it with `curl`: the newest list, a type, genre and
+country filter, paging, and a search containing `&` all returned real data; `size=51`, `type=BOOK` and `page=abc` gave
+`400` (`VALIDATION_ERROR`), and `/api/v1/me` was still `401`. Not yet checked: the response when the real provider is
+down (only the fake server was used for that).
+
 Profile endpoints: `GET /api/v1/me` returns the caller's `id`, `displayName` and `createdAt`; `PATCH /api/v1/me`
 renames the caller (200 with the updated profile, 400 `VALIDATION_ERROR` for a bad name or body, see
 `docs/design/api.md` §2.1). The user is always the token's subject. `Profiles` takes a `java.time.Clock` (bean in
@@ -291,11 +298,10 @@ check constraints, the `visibility` default, the chat identity column, and the f
 cd backend && ./gradlew test
 ```
 
-Verified: 79 tests pass (`ModularityTests`, 2 `SecurityConfigTests`, 11 `BearerOnlySecurityTests`, 6
-`JwtValidationTests`, 2 `ProblemJsonErrorTests`, 5 `AnonymousHttpRequestTests`, 33 `DisplayNamesTests`, 3
-`UserProfilesTests`, 6 `ProfileProvisioningTests`, and 10 `MeEndpointTests`). The earlier 4-test run also passed on a
+Verified: 139 tests pass (auth and profile: 79; catalog: 4 `PagingTests`, 23 `KKPhimMappingTests`, 25
+`KKPhimProviderTests`, and 8 `MoviesEndpointTests`; plus `ModularityTests`). The earlier 4-test run also passed on a
 clean copy of the repository with no `.env` (the Gradle test task supplies a placeholder `SUPABASE_URL`, so tests never
-depend on a developer's `.env`); the clean-copy run was not repeated for the 79 tests. The default `contextLoads()` test
+depend on a developer's `.env`); the clean-copy run was not repeated for the 139 tests. The default `contextLoads()` test
 was removed: every full-application test already needs the same context.
 
 Run one class with `./gradlew test --tests 'com.thanh.cinetogether.config.BearerOnlySecurityTests'`.
@@ -305,7 +311,9 @@ Run one class with `./gradlew test --tests 'com.thanh.cinetogether.config.Bearer
 `AnonymousHttpRequestTests` starts the full application on a random port and sends real HTTP requests;
 `UserProfilesTests`, `ProfileProvisioningTests` and `MeEndpointTests` run the full application against the
 Testcontainers PostgreSQL; the web-slice tests use the `@SecurityWebMvcTest` annotation, which keeps feature modules out;
-`DisplayNamesTests` is a plain unit test; `ModularityTests` runs Spring Modulith's `verify()` (see Known Issues).
+`MoviesEndpointTests` runs the full application with a mocked `MovieProvider`, so it never calls the real provider (the
+provider tests use `FakeProviderServer`, a local server with canned JSON); `DisplayNamesTests` and the catalog mapping
+tests are plain unit tests; `ModularityTests` runs Spring Modulith's `verify()` (see Known Issues).
 
 Tests use Testcontainers with `postgres:17` (the same major version as the local database; Docker must be running) and
 do not touch the local database. Verified: the full-application tests start; Flyway applies V1 to the fresh container

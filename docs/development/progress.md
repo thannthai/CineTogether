@@ -155,8 +155,14 @@ JSON, a list without `data`) in `ProviderUnavailableException`; a 404 stays an e
 timeouts are not configurable from `application.yaml` yet, and the HTTP codes (`PROVIDER_UNAVAILABLE`,
 `MOVIE_NOT_FOUND`) are produced later by the web layer.
 
-Next: behavior 4, `GET /movies` (the `catalog` application service and controller, with the provider bean wired from
-configuration).
+Behavior 4 (`GET /movies`) is done: the `Catalog` service, `MoviesController`, `CatalogExceptionHandler` (400, and 503
+`PROVIDER_UNAVAILABLE`), `CatalogConfig` (the provider bean from `application.yaml`), `GlobalExceptionHandler` now also
+maps an invalid parameter value to 400, and `SecurityConfig` makes `GET /api/v1/movies` public. Decisions: `GET /movies`
+uses the single configured provider (no `providerKey` parameter); an unavailable provider is 503; watching a movie
+(`playback`) stays authenticated (option A). Verified with `./gradlew test` (139 tests pass) and by running the application
+against the real provider (public calls, filters, search, bad parameters).
+
+Next: behavior 5, `GET /movies/{providerKey}/{movieId}` (details with episodes; 404 `MOVIE_NOT_FOUND`).
 
 WebSocket `AUTH` and token renewal belong to the WebSocket milestone.
 
