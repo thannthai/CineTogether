@@ -175,7 +175,12 @@ Behavior 7 (`GET /movies/{providerKey}/{movieId}/playback`) is done: authenticat
 details; a missing `episodeId` is 400 `VALIDATION_ERROR` (new handler in `GlobalExceptionHandler`). Verified with
 `./gradlew test` (153 tests pass).
 
-Next: behavior 8, final access rules and documentation cleanup, then a check against the real provider.
+Behavior 8 (access rules) is done: `CatalogAccessRulesTests` lists every catalog route with and without a token (and
+the CORS preflight); closing the home route made it fail. The `SecurityConfig` Javadoc and `setup.md` were updated.
+Verified with `./gradlew test` (161 tests pass).
+
+Next: run the application against the real provider (details, home, playback, then the provider-down case), then close
+the catalog backend milestone.
 
 WebSocket `AUTH` and token renewal belong to the WebSocket milestone.
 

@@ -21,8 +21,9 @@ import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Baseline HTTP security for a stateless, bearer-token-only API: every request needs a valid Supabase JWT in the
- * {@code Authorization} header, plus CORS so the browser frontend can call the API. Per-endpoint rules (public catalog
- * and public rooms) are added with the features that need them.
+ * {@code Authorization} header, plus CORS so the browser frontend can call the API. The only public routes are the
+ * catalog reads ({@code GET} home, movie list and movie details); playback and everything else need a token.
+ * {@code CatalogAccessRulesTests} is the table of these rules. Public rooms add their own rules with that feature.
  * <p>
  * Stateless means the server creates no {@code HttpSession} and sets no cookie, not even for rejected anonymous
  * requests. {@code STATELESS} stops the rejected request from being saved in a session, and CSRF protection is
