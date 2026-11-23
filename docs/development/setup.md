@@ -165,7 +165,7 @@ country filter, paging, and a search containing `&` all returned real data; `siz
 without a token (401). With the provider address pointed at a closed port, the public endpoints answered `503`
 (`PROVIDER_UNAVAILABLE`) at once. A real HLS link (master playlist, variant playlist and a `.ts` segment) answered `200`/`206` with
 `Access-Control-Allow-Origin: *`, so a browser on another origin can read it (a plain GET needs no preflight). Not yet
-checked: `playback` with a real token, a slow provider, and playing the stream in a browser. The real provider is
+checked: a slow provider, and playing the stream in a browser. The real provider is
 sometimes slow or fails (one `503` after about 3 s, one fast `503` on `playback`); the cause of every `503` is logged
 as a `WARN` line, while the client only sees the fixed message. Opening an `.m3u8` link directly in desktop Chrome shows
 an empty player: Chrome cannot play HLS without a library such as hls.js.
@@ -174,8 +174,9 @@ Profile endpoints: `GET /api/v1/me` returns the caller's `id`, `displayName` and
 renames the caller (200 with the updated profile, 400 `VALIDATION_ERROR` for a bad name or body, see
 `docs/design/api.md` §2.1). The user is always the token's subject. `Profiles` takes a `java.time.Clock` (bean in
 `ClockConfig`) so tests can set `updated_at` deterministically; the DB clock (`created_at`) and the JVM clock can differ.
-Not yet checked with a real token end to end: run `bootRun`, sign up a new test account with `data.display_name` in
-`backend/http/auth.http`, then call `GET` and `PATCH /me`.
+Checked with a real token (existing account): sign-in, `GET /me` (200) and `playback` (200). Not yet checked: a new account
+whose sign-up carries `data.display_name` (re-registering an existing email does not change its metadata; the sign-up
+response then has `identities: []`), and `PATCH /me`.
 
 The API is stateless and bearer-only: `SecurityConfig` sets `SessionCreationPolicy.STATELESS` and disables CSRF, so the
 server never creates an `HttpSession` or sets a `JSESSIONID` cookie, even for rejected anonymous requests. Both settings

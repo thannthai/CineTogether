@@ -97,8 +97,9 @@ Movie Catalog & Watch Alone, backend first. Authentication & User Profile is com
 two parts are deliberately postponed, so its milestone box stays unchecked:
 
 - the React login, register and logout screens (FR-AUTH-04, former Task 8), to be built with the whole frontend;
-- an end-to-end check with a real Supabase token (`GET` and `PATCH /me`, name from `display_name`), still to be run
-  with `backend/http/auth.http`.
+- one part of the end-to-end check with a real Supabase token: on 2026-11-23, with an existing account, signing in,
+  `GET /me` (200, profile created, name from the email because that account has no `display_name`) and the `playback`
+  call (200) worked. Still to be checked: a new account whose sign-up carries `data.display_name`, and `PATCH /me`.
 
 The per-endpoint Security rules (former Task 7) are merged into the catalog work, because the first public endpoints
 (catalog) and the first authenticated one that is not `/me` (playback) appear there.
