@@ -1,5 +1,6 @@
 package com.thanh.cinetogether.catalog.web;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
@@ -11,10 +12,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
@@ -34,6 +38,7 @@ import com.thanh.cinetogether.catalog.domain.movie.MovieType;
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest
 @AutoConfigureMockMvc
+@ExtendWith(OutputCaptureExtension.class)
 class MoviesEndpointTests {
 
     @Autowired
@@ -102,6 +107,18 @@ class MoviesEndpointTests {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.status").value(503))
                 .andExpect(jsonPath("$.code").value("PROVIDER_UNAVAILABLE"));
+    }
+
+    @Test
+    void theCauseOfAnUnavailableProviderIsLoggedButNotReturned(CapturedOutput output) throws Exception {
+        given(movieProvider.browse(any())).willThrow(
+                new ProviderUnavailableException("KKPhim could not be read.", new RuntimeException("connection reset")));
+
+        String body = mockMvc.perform(get("/api/v1/movies")).andExpect(status().isServiceUnavailable())
+                .andReturn().getResponse().getContentAsString();
+
+        assertThat(output).contains("connection reset");
+        assertThat(body).doesNotContain("connection reset");
     }
 
 }
