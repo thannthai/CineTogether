@@ -180,8 +180,17 @@ Behavior 8 (access rules) is done: `CatalogAccessRulesTests` lists every catalog
 the CORS preflight); closing the home route made it fail. The `SecurityConfig` Javadoc and `setup.md` were updated.
 Verified with `./gradlew test` (161 tests pass).
 
-Next: run the application against the real provider (details, home, playback, then the provider-down case), then close
-the catalog backend milestone.
+The catalog backend (behaviors 1 to 8) is done and was checked against the real provider on 2026-11-23: home, details,
+404s, playback (200 with a real token) and 503 with a dead provider address. The provider is sometimes slow or fails;
+the cause of every 503 is logged as WARN. Desktop Chrome cannot play an `.m3u8` link by itself, so the frontend needs
+hls.js (the stream host sends `Access-Control-Allow-Origin: *`).
+
+Next: the frontend, built in one go (both milestones' UI). Plan: the user designs it in Figma Make, the Figma MCP
+plugin (`figma@claude-plugins-official`, authenticated as the Figma user `tcthanh`, seat View) is already installed;
+then the generated code is brought into `frontend/` (React 19, Vite, TypeScript, oxlint; no router or UI library yet)
+and wired to the API: Supabase client (register with a display-name field, sign in, sign out), catalog screens, the
+hls.js player, `GET` and `PATCH /me`. Still to check there: a new account whose sign-up carries `data.display_name`.
+Closing the Authentication milestone box needs those login screens.
 
 WebSocket `AUTH` and token renewal belong to the WebSocket milestone.
 
