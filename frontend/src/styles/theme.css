@@ -1,0 +1,133 @@
+/* Design tokens: the only place colors are defined. Theme is chosen by data-theme="light" | "dark" on <html>. */
+
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 200 1000;
+  font-display: swap;
+  src: url('/fonts/nunito-variable.ttf') format('truetype');
+}
+
+:root,
+:root[data-theme='light'] {
+  color-scheme: light;
+  --font: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+
+  --bg: #fff8f3;
+  --surface: #ffffff;
+  --surface-soft: #fff0f6;
+  --border: #f4dce6;
+  --border-strong: #ebc4d5;
+  --text: #3d2c3e;
+  --text-muted: #725c74;
+  --primary: #ffb3cf;
+  --on-primary: #4a2a43;
+  --primary-hover: #ffa0c3;
+  --primary-soft: #ffe3ee;
+  /* Pink for text, links and active labels on light surfaces (AA 4.5:1). */
+  --primary-strong: #a8326d;
+  --focus: #d4508b;
+
+  --error-text: #7a2e3a;
+  --error-bg: #ffe5e8;
+  --error-border: #f2b3bc;
+  --success-text: #2f5f4c;
+  --success-bg: #def5e8;
+  --warning: #ffe08a;
+  --warning-text: #5c4810;
+  --warning-bg: #fff3c8;
+
+  /* Small accents: stickers, badges */
+  --accent-lavender: #cdb8ff;
+  --accent-sky: #bfe3ff;
+  --accent-peach: #ffd3b0;
+  --accent-butter: #ffe08a;
+  --accent-pink: #ffb3cf;
+  --sticker-text: #4a2a43;
+
+  /* Large flat pastel areas (cards, banners); text on them is always plum */
+  --area-pink: #fddfdf;
+  --area-butter: #fcf7de;
+  --area-mint: #defde0;
+  --area-sky: #def3fd;
+  --area-lavender: #f0defd;
+  --area-text: #3d2c3e;
+  --area-text-muted: #634d65;
+  --area-line: rgba(74, 42, 67, 0.16);
+
+  /* Images and media: same intent in both themes */
+  --scrim-rgb: 61, 44, 62;
+  --on-image: #ffffff;
+  --on-image-muted: rgba(255, 255, 255, 0.86);
+  --on-image-faint: rgba(255, 255, 255, 0.7);
+  --media-bg: #2a1f30;
+
+  --header-bg: rgba(255, 255, 255, 0.86);
+  --overlay: rgba(61, 44, 62, 0.42);
+  --overlay-soft: rgba(61, 44, 62, 0.62);
+  --skeleton-a: #fff0f6;
+  --skeleton-b: #ffe1ec;
+
+  --shadow: 0 8px 24px rgba(255, 179, 207, 0.25);
+  --shadow-sm: 0 3px 10px rgba(255, 179, 207, 0.24);
+  --shadow-lg: 0 18px 44px rgba(214, 140, 176, 0.3);
+  --ring: 0 0 0 3px rgba(255, 160, 195, 0.5);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #1f1726;
+  --surface: #2a2033;
+  --surface-soft: #352a40;
+  --border: #473a55;
+  --border-strong: #5c4b6d;
+  --text: #fbeff5;
+  --text-muted: #b9a6c4;
+  --primary: #ffb3cf;
+  --on-primary: #4a2a43;
+  --primary-hover: #ffc4da;
+  --primary-soft: #4a2f45;
+  --primary-strong: #ffb3cf;
+  --focus: #ffb3cf;
+
+  --error-text: #ffb3ba;
+  --error-bg: #4a2530;
+  --error-border: #7a4150;
+  --success-text: #b8f0d8;
+  --success-bg: #1f3d33;
+  --warning: #ffe08a;
+  --warning-text: #ffe08a;
+  --warning-bg: #4a4020;
+
+  --media-bg: #170f1c;
+  --header-bg: rgba(42, 32, 51, 0.86);
+  --overlay: rgba(15, 9, 20, 0.62);
+  --overlay-soft: rgba(24, 16, 30, 0.7);
+  --skeleton-a: #2a2033;
+  --skeleton-b: #3b2f48;
+
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 18px rgba(255, 179, 207, 0.12);
+  --shadow-sm: 0 3px 10px rgba(0, 0, 0, 0.3), 0 0 10px rgba(255, 179, 207, 0.08);
+  --shadow-lg: 0 18px 44px rgba(0, 0, 0, 0.45), 0 0 24px rgba(255, 179, 207, 0.12);
+  --ring: 0 0 0 3px rgba(255, 179, 207, 0.45);
+}
+
+/* Smooth colour change while switching themes (the class is set briefly by the toggle). */
+:root.theme-switching,
+:root.theme-switching *,
+:root.theme-switching *::before,
+:root.theme-switching *::after {
+  transition:
+    background-color 0.26s ease,
+    color 0.26s ease,
+    border-color 0.26s ease,
+    box-shadow 0.26s ease,
+    fill 0.26s ease !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root.theme-switching,
+  :root.theme-switching * {
+    transition: none !important;
+  }
+}

@@ -220,8 +220,8 @@ kill <PID>
 
 ## Frontend (React + Vite + TypeScript)
 
-The app lives directly in `frontend/` (no nested folder). Stack: React 19, Vite 8, TypeScript, oxlint; no UI framework
-or Supabase client yet (added with the Authentication milestone).
+The app lives directly in `frontend/` (no nested folder). Stack: React 19, Vite 8, TypeScript, React Router, oxlint,
+Vitest for pure-logic unit tests; no UI framework or Supabase client yet (added with the Authentication milestone).
 
 Setup and run, from `frontend/`:
 
@@ -230,15 +230,17 @@ cp .env.example .env.local     # then fill in the real values (git-ignored)
 npm install
 npm run dev                    # http://localhost:5173 (port is fixed with strictPort)
 npm run lint
+npm test                       # Vitest (pure logic only; screens are checked in the browser)
 npm run build                  # type-checks (tsc -b) then builds to dist/
 ```
 
-Verified: `npm install` (0 vulnerabilities), `npm run lint` (clean), `npm run build` (success), and `npm run dev`
-serving `/`, `/src/main.tsx`, `/src/App.tsx`, and `/src/config/env.ts` with HTTP 200.
+Verified: `npm run lint` (clean), `npm test` (14 tests pass), `npm run build` (success), and the app in Chrome (header,
+dropdowns, mobile drawer, light and dark theme, deep links such as `/together`).
 
-Structure: `src/main.tsx` (entry), `src/App.tsx` (placeholder page with a temporary setup check),
-`src/config/env.ts` (validated access to the `VITE_*` variables; fails fast with a clear message if one is missing),
-`src/vite-env.d.ts` (variable typings).
+Structure (feature-first, see `docs/architecture/conventions.md`): `src/main.tsx` (entry), `src/app/` (router, layout,
+header, footer, placeholder pages), `src/features/catalog/` (filter options and URL helpers so far), `src/shared/`
+(`ui/` icons, `lib/` theme hook), `src/styles/` (design tokens and base styles), `src/config/env.ts` (validated access
+to the `VITE_*` variables; fails fast with a clear message if one is missing), `src/vite-env.d.ts` (variable typings).
 
 Environment variables (`frontend/.env.local`): `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`,
 `VITE_API_BASE_URL`. Verified that all three reach the browser code (present in the production bundle and injected in

@@ -195,6 +195,17 @@ Closing the Authentication milestone box needs those login screens.
 Frontend conventions were agreed on 2026-11-23: feature-first structure and rules in `docs/architecture/conventions.md`,
 short summary in `CLAUDE.md`. The folders are created as the work reaches them.
 
+Frontend slice 1 (foundation) is done: React Router (routes `/`, `/movies`, `/movies/:providerKey/:movieId`,
+`.../watch`, `/together`, 404), design tokens with a light and a dark pastel theme (saved choice, system default, no
+flash on load), the Nunito font, header (menu, mega menus, mobile drawer, theme toggle) and footer, ported from the
+Figma Make prototype with the round-3 design fixes (no trailing dots, no gradient on the wordmark, no sparkle).
+Vitest was added for pure logic (filter-to-URL helpers and the highlighted menu item; 14 tests). Verified with
+`npm run lint`, `npm test`, `npm run build`, and in Chrome. Decisions: the menu hides Chiếu rạp, Anime and TV Shows
+until the backend can list them (KKPhim has the lists `phim-chieu-rap`, `hoat-hinh`, `tv-shows`, but `GET /movies`
+only maps new, single and series; Anime is the `hoat-hinh` list, not a genre); genre and country menus use the real
+KKPhim names and slugs (no "Mỹ", it is "Âu Mỹ"). Placeholders remain for every page, the search button only opens
+`/movies`, and Đăng nhập / Đăng ký do nothing yet. Next: slice 2, the catalog screens wired to the real API.
+
 WebSocket `AUTH` and token renewal belong to the WebSocket milestone.
 
 ## Notes

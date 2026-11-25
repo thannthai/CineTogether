@@ -1,9 +1,26 @@
 <!doctype html>
-<html lang="en">
+<html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // Set the saved (or system) theme before first paint so the page never flashes the wrong one.
+      ;(function () {
+        var theme = 'light'
+        try {
+          var saved = localStorage.getItem('cinetogether-theme')
+          theme =
+            saved === 'light' || saved === 'dark'
+              ? saved
+              : window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light'
+        } catch (error) {}
+        document.documentElement.setAttribute('data-theme', theme)
+      })()
+    </script>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preload" href="/fonts/nunito-variable.ttf" as="font" type="font/ttf" crossorigin />
     <title>CineTogether</title>
   </head>
   <body>
