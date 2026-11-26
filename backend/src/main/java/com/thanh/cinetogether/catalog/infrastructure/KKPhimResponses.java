@@ -33,7 +33,7 @@ final class KKPhimResponses {
     }
 
     record Movie(String name, String slug, String type, String content, @JsonProperty("poster_url") String posterUrl,
-            List<Category> category) {
+            @JsonProperty("thumb_url") String thumbUrl, List<Category> category) {
     }
 
     record Server(@JsonProperty("server_data") List<EpisodeItem> serverData) {

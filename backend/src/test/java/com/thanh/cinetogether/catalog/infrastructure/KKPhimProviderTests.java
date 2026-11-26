@@ -147,7 +147,8 @@ class KKPhimProviderTests {
                 {"status": true, "msg": "done",
                  "movie": {"name": "Movie One", "slug": "movie-one", "type": "series",
                            "content": "<p>First <b>line</b></p><p>Second &amp; last</p>",
-                           "poster_url": "https://img.example/one.jpg", "category": [{"name": "Drama"}]},
+                           "poster_url": "https://img.example/one.jpg",
+                           "thumb_url": "https://img.example/one-thumb.jpg", "category": [{"name": "Drama"}]},
                  "episodes": [{"server_name": "A", "server_data": [
                    {"name": "Tập 1", "slug": "tap-1"}, {"name": "Tập 2", "slug": "tap-2"}]}]}
                 """);
@@ -155,7 +156,8 @@ class KKPhimProviderTests {
         Optional<MovieDetail> detail = provider.detail("movie-one");
 
         assertThat(detail).contains(new MovieDetail("kkphim", "movie-one", "Movie One", MovieType.SERIES,
-                "First line\nSecond & last", "https://img.example/one.jpg", List.of("Drama"),
+                "First line\nSecond & last", "https://img.example/one.jpg", "https://img.example/one-thumb.jpg",
+                List.of("Drama"),
                 List.of(new Episode("tap-1", "Tập 1"), new Episode("tap-2", "Tập 2"))));
     }
 
@@ -183,7 +185,7 @@ class KKPhimProviderTests {
         Optional<MovieDetail> detail = provider.detail("bare");
 
         assertThat(detail).contains(new MovieDetail("kkphim", "bare", "Bare", MovieType.SERIES, null, null,
-                List.of(), List.of()));
+                null, List.of(), List.of()));
     }
 
     @Test

@@ -112,7 +112,7 @@ public class KKPhimProvider implements MovieProvider {
         }
         return Optional.of(new MovieDetail(KEY, movie.slug() != null ? movie.slug() : movieId, movie.name(),
                 KKPhimMapping.movieType(movie.type()), KKPhimMapping.plainText(movie.content()),
-                KKPhimMapping.imageUrl(null, movie.posterUrl()),
+                KKPhimMapping.imageUrl(null, movie.posterUrl()), KKPhimMapping.imageUrl(null, movie.thumbUrl()),
                 movie.category() == null ? List.of() : movie.category().stream().map(Category::name).toList(),
                 List.copyOf(episodes.values())));
     }

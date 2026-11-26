@@ -47,7 +47,8 @@ class MovieDetailEndpointTests {
     @Test
     void detailIsPublicAndReturnsTheMovieWithItsEpisodes() throws Exception {
         given(movieProvider.detail("movie-one")).willReturn(Optional.of(new MovieDetail("kkphim", "movie-one",
-                "Movie One", MovieType.SERIES, "A synopsis.", "https://img.example/one.jpg", List.of("Action"),
+                "Movie One", MovieType.SERIES, "A synopsis.", "https://img.example/one.jpg",
+                "https://img.example/one-thumb.jpg", List.of("Action"),
                 List.of(new Episode("tap-1", "Tap 1"), new Episode("tap-2", "Tap 2")))));
 
         mockMvc.perform(get("/api/v1/movies/kkphim/movie-one"))
@@ -59,6 +60,7 @@ class MovieDetailEndpointTests {
                 .andExpect(jsonPath("$.type").value("SERIES"))
                 .andExpect(jsonPath("$.synopsis").value("A synopsis."))
                 .andExpect(jsonPath("$.posterUrl").value("https://img.example/one.jpg"))
+                .andExpect(jsonPath("$.backdropUrl").value("https://img.example/one-thumb.jpg"))
                 .andExpect(jsonPath("$.genres[0]").value("Action"))
                 .andExpect(jsonPath("$.episodes.length()").value(2))
                 .andExpect(jsonPath("$.episodes[0].episodeId").value("tap-1"))

@@ -245,6 +245,7 @@ updates): `featured` is the first 5 movies and `new-updates` holds the whole pag
   "type": "SERIES",
   "synopsis": "...",
   "posterUrl": "https://media.example/poster.jpg",
+  "backdropUrl": "https://media.example/backdrop.jpg",
   "genres": [
     "Drama"
   ],
@@ -256,6 +257,8 @@ updates): `featured` is the first 5 movies and `new-updates` holds the whole pag
   ]
 }
 ```
+
+`backdropUrl` is the provider's landscape image (null when it has none); clients use it as a page background and fall back to `posterUrl`. The movie list items carry only `posterUrl`.
 
 `synopsis` is plain text: the provider's HTML is removed, so clients show it as text. A single-part movie has one entry in
 `episodes`. When the provider lists the same episode on several servers, `episodes` contains it once, identified by
