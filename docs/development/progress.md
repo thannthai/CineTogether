@@ -135,6 +135,44 @@ On 2026-11-26 the user signed in with a real account: the header shows the avata
 sign-in and the session work. Still to check by hand: renaming in "Hồ sơ" (`PATCH /me`), the session surviving a page reload,
 sign-out, and a new account whose sign-up carries a display name. The Authentication milestone stays open until then. Forgot-password is not built.
 
+Frontend slice 4 (watch page, `/movies/:providerKey/:movieId/watch?episode=...`) is done: a guest only sees the invitation to
+sign in or register and `playback` is not called; a signed-in user gets `GET .../playback` (with the token) and the stream
+plays in a `<video>` through hls.js (loaded on demand, its own 578 kB chunk; native playback is only the fallback for
+browsers without Media Source Extensions); the episode list switches episodes through the `episode` parameter (an unknown
+one falls back to the first); states for loading, no source (404), provider failure with retry, and a stream the browser
+cannot play with retry. Two findings: recent Chrome (157) answers "maybe" to `canPlayType` for HLS but its native player
+stopped after the playlist, so hls.js must be preferred over native playback; and with Vite's dev server the first dynamic
+import of hls.js broke when the dependency was re-optimized mid-visit, so `optimizeDeps.include` lists it in
+`vite.config.ts`. Verified with `npm run lint`, `npm test` (68 tests), `npm run build`, and in Chrome with the user's
+signed-in session against the real provider: the episode loaded (1920x802, 15:22), played and buffered, switching episodes
+worked, and an unknown episode fell back to the first. Not checked: the guest view (the session was not signed out), the
+no-source and provider-failure retry states, mobile, Safari. The main bundle is about 593 kB (React, Router, Supabase); not
+split yet.
+
+Watch page player rework: the browser's own controls are replaced by a custom bar (`features/watch/Player.tsx`,
+`PlayerControls.tsx`, `usePlayerState.ts`, `useHls.ts`): the progress bar (with the buffered range) sits above the buttons,
+then play and pause, back and forward 5 seconds (also the Left and Right keys), volume and mute (the slider opens when the pointer is on the volume button), previous and next episode buttons
+(shown for a series and disabled on the first and last episode, absent for a single movie) and, on the right, playback speed, picture-in-picture (hidden where unsupported) and full
+screen; Space or K, M and F are shortcuts, the controls hide after 2.5 s of inactivity while playing, a click on the video
+toggles play and a double click toggles full screen. When an episode ends the next one starts. Volume, mute and speed are
+remembered (`playerPrefs.ts`); the speed also sets `defaultPlaybackRate`, because loading a stream resets the speed. The
+container goes full screen so the controls stay. Browsers without Media Source Extensions (iPhone Safari) keep the native
+controls. Not built on purpose: quality choice (every sampled KKPhim stream has a single ~1080p level; the selector should
+come from `hls.levels` and show only with more than one level), skip intro (no data), mic, CC and download. Unit tests
+cover time formatting, seek clamping, neighbouring episodes and the saved preferences (82 tests). Verified in Chrome with
+the signed-in session: play, pause, 5 second seeks, speed menu and its memory across episodes, picture-in-picture in and out,
+next episode, automatic switch at the end of an episode, no next button on the last one, and the failure state (episodes 7
+and 8 of the sampled series return 404 at the provider). Not verified: full screen (the browser used by the assistant
+refused the request, now caught instead of an unhandled error), auto-hide of the controls, touch, Safari, the volume
+slider and the guest view.
+
+Home interest cards: each theme card shows the poster of a movie of that theme (one request per theme, `pickDistinct`
+makes sure no movie appears twice and prefers one released this year; the API has no popularity data, so it is a recently
+updated movie, not a "hot" one), with the bold theme name and "Khám phá" with an arrow; a theme without a cover, or while
+the covers load, keeps its flat pastel color. The row has padding on top so a lifted card is no longer clipped. The
+home page now makes eight more provider requests (one per theme); if the provider turns out to be slow or rate limited,
+cache or reduce them. The previous and next episode buttons of the player are arrows only.
+
 Deferred on purpose (not blocking): a trailer in the hero and the hover preview (KKPhim has `trailer_url`, a YouTube link, for
 only some movies; needs a new `trailerUrl` field); a status label such as "Tập 6/24" or "Đang chiếu / Hoàn tất" (KKPhim has
 `status`, `episode_current`, `episode_total`; needs new API fields); Chiếu rạp, Anime and TV Shows lists and a year filter
@@ -210,7 +248,7 @@ Verified with `./gradlew test` (161 tests pass).
 
 The catalog backend (behaviors 1 to 8) is done and was checked against the real provider on 2026-11-23: home, details,
 404s, playback (200 with a real token) and 503 with a dead provider address. The provider is sometimes slow or fails;
-the cause of every 503 is logged as WARN. Desktop Chrome cannot play an `.m3u8` link by itself, so the frontend needs
+the cause of every 503 is logged as WARN. Desktop Chrome cannot reliably play an `.m3u8` link by itself, so the frontend needs
 hls.js (the stream host sends `Access-Control-Allow-Origin: *`).
 
 Next: the frontend, built in one go (both milestones' UI). Plan: the user designs it in Figma Make, the Figma MCP

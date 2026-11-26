@@ -37,8 +37,8 @@ async function request<T>(method: string, path: string, { query = {}, body, sign
 export const apiGet = <T>(path: string, query: Query = {}, signal?: AbortSignal) =>
   request<T>('GET', path, { query, signal })
 
-export const apiGetAuth = <T>(path: string, signal?: AbortSignal) =>
-  request<T>('GET', path, { signal, auth: true })
+export const apiGetAuth = <T>(path: string, query: Query = {}, signal?: AbortSignal) =>
+  request<T>('GET', path, { query, signal, auth: true })
 
 export const apiPatchAuth = <T>(path: string, body: unknown, signal?: AbortSignal) =>
   request<T>('PATCH', path, { body, signal, auth: true })

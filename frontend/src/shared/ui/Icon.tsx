@@ -58,6 +58,22 @@ const paths = {
     </>
   ),
   logout: <path d="M9 3H4v18h5m5-9h8m-4-4 4 4-4 4" />,
+  pause: <path d="M8 5v14M16 5v14" />,
+  rewind: <path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5" />,
+  forward: <path d="M21 12a9 9 0 1 1-3-6.7M21 4v5h-5" />,
+  volume: <path d="M11 5 6 9H3v6h3l5 4V5Zm4 3a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14" />,
+  mute: <path d="M11 5 6 9H3v6h3l5 4V5Zm5 4 6 6m0-6-6 6" />,
+  next: <path d="m5 5 10 7-10 7V5Zm14 0v14" />,
+  previous: <path d="m19 5-10 7 10 7V5ZM5 5v14" />,
+  gauge: <path d="M3.5 17a9 9 0 1 1 17 0M12 14l4-4" />,
+  pip: (
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <rect x="12" y="11" width="6" height="5" rx="1" />
+    </>
+  ),
+  expand: <path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5" />,
+  shrink: <path d="M3 8h5V3m8 0v5h5M3 16h5v5m8 0v-5h5" />,
   chevronDown: <path d="m6 9 6 6 6-6" />,
   close: <path d="m6 6 12 12M6 18 18 6" />,
   menu: <path d="M4 6h16M4 12h16M4 18h16" />,
@@ -93,7 +109,7 @@ export function Icon({ name, size = 20, style, className }: IconProps) {
       width={size}
       height={size}
       viewBox="0 0 24 24"
-      fill={name === 'play' ? 'currentColor' : 'none'}
+      fill={name === 'play' || name === 'next' || name === 'previous' ? 'currentColor' : 'none'}
       stroke="currentColor"
       strokeWidth="2.1"
       strokeLinecap="round"

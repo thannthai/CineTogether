@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom'
 import { BrowsePage, DetailPage, HomePage } from '../features/catalog'
+import { WatchPage } from '../features/watch'
 import { AppLayout } from './AppLayout'
 import { NotFoundPage, PagePlaceholder } from './PagePlaceholder'
 
@@ -11,10 +12,7 @@ export const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: 'movies', element: <BrowsePage /> },
       { path: 'movies/:providerKey/:movieId', element: <DetailPage /> },
-      {
-        path: 'movies/:providerKey/:movieId/watch',
-        element: <PagePlaceholder title="Xem phim" />,
-      },
+      { path: 'movies/:providerKey/:movieId/watch', element: <WatchPage /> },
       {
         path: 'together',
         element: (
