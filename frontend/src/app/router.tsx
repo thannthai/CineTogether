@@ -1,8 +1,9 @@
 import { createBrowserRouter } from 'react-router-dom'
 import { BrowsePage, DetailPage, HomePage } from '../features/catalog'
+import { WatchTogetherPage } from '../features/party'
 import { WatchPage } from '../features/watch'
 import { AppLayout } from './AppLayout'
-import { NotFoundPage, PagePlaceholder } from './PagePlaceholder'
+import { NotFoundPage } from './PagePlaceholder'
 
 // Screen routes follow docs/design/api.md: providerKey and movieId identify a movie.
 export const router = createBrowserRouter([
@@ -13,12 +14,7 @@ export const router = createBrowserRouter([
       { path: 'movies', element: <BrowsePage /> },
       { path: 'movies/:providerKey/:movieId', element: <DetailPage /> },
       { path: 'movies/:providerKey/:movieId/watch', element: <WatchPage /> },
-      {
-        path: 'together',
-        element: (
-          <PagePlaceholder title="Xem chung" note="Tính năng sắp ra mắt: xem chung cùng bạn bè." />
-        ),
-      },
+      { path: 'together', element: <WatchTogetherPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

@@ -5,7 +5,8 @@ import { useAsync } from '../../../shared/lib/useAsync'
 import { Icon } from '../../../shared/ui/Icon'
 import { browseMovies } from '../api'
 import { browseHref } from '../browseFilters'
-import { moviePath, typeLabel } from '../moviePaths'
+import { differentTitle, progressLabel } from '../movieLabels'
+import { moviePath } from '../moviePaths'
 import type { MoviePage } from '../types'
 
 const MIN_LENGTH = 2
@@ -117,10 +118,8 @@ export function SearchPalette({ onClose }: { onClose: () => void }) {
                   {movie.posterUrl ? <img src={movie.posterUrl} alt="" /> : <span className="palette-noposter" />}
                   <span className="palette-copy">
                     <strong>{movie.title}</strong>
-                    <small>
-                      {movie.releaseYear ? `${movie.releaseYear} • ` : ''}
-                      {typeLabel(movie.type)}
-                    </small>
+                    {differentTitle(movie) && <small>{movie.originalTitle}</small>}
+                    <small>{[movie.releaseYear, progressLabel(movie.progress, movie.type)].filter(Boolean).join(' • ')}</small>
                   </span>
                   <Icon name="chevron" size={15} />
                 </button>

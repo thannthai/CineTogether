@@ -59,6 +59,7 @@
 /* ---------- Hero ---------- */
 .hero {
   position: relative;
+  cursor: pointer;
   /* One fixed height for every movie, so the image and the picker never move when the text changes. */
   height: clamp(500px, 35vw, 560px);
   overflow: hidden;
@@ -234,6 +235,10 @@
   opacity: 1;
   border: 2px solid var(--primary);
   transform: scale(1.08);
+}
+
+.hero-loading {
+  cursor: default;
 }
 
 .hero-loading .hero-copy {
@@ -478,7 +483,7 @@ a.movie-card:hover .poster-wrap {
 }
 
 .movie-card h3 {
-  margin-top: 12px;
+  margin-top: 4px;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -1145,6 +1150,21 @@ a.page-step:hover {
   height: 38px;
 }
 
+/* Thin, softer outlines so the secondary actions do not compete with "Xem ngay". */
+.preview-actions .btn.secondary,
+.preview-actions .circle-btn {
+  border-width: 1px;
+}
+
+.preview-actions .btn.secondary {
+  border-color: color-mix(in srgb, var(--primary) 45%, transparent);
+}
+
+.preview-actions .btn.secondary:hover:not(:disabled),
+.preview-actions .circle-btn:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--primary) 75%, transparent);
+}
+
 /* ---------- Detail page ---------- */
 .detail-hero {
   position: relative;
@@ -1269,4 +1289,178 @@ a.page-step:hover {
   .detail-poster {
     width: 150px;
   }
+}
+
+/* ---------- Tags and original titles ---------- */
+.movie-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.movie-tags li {
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: var(--sticker-text);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(var(--scrim-rgb), 0.12);
+}
+
+/* Quality and language are plain information: a neutral dark chip. Only the progress carries a color. */
+.movie-tags .tag-quality,
+.movie-tags .tag-language {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+  background: rgba(70, 55, 95, 0.55);
+  color: #fff;
+  backdrop-filter: blur(4px);
+}
+.tag-progress {
+  background: var(--accent-peach);
+}
+.tag-done {
+  background: var(--accent-butter);
+}
+
+/* On a poster: quality and language at the top, progress at the bottom is handled by the same row. */
+.poster-tags {
+  position: absolute;
+  inset: 8px 8px auto 8px;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.poster-progress {
+  position: absolute;
+  inset: auto 8px 8px 8px;
+  pointer-events: none;
+}
+
+.movie-card p.card-year {
+  margin: 12px 0 0;
+  font-weight: 600;
+}
+
+.movie-card p.original-title {
+  margin-top: 3px;
+  display: block;
+  overflow: hidden;
+  font-size: 10px;
+  color: var(--text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hero-original,
+.preview-original {
+  margin-top: 6px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.hero-original {
+  font-size: 15px;
+  color: var(--on-image-muted);
+}
+
+.hero-tags {
+  margin-top: 12px;
+}
+
+.hero-tags li {
+  font-size: 10px;
+}
+
+.preview-original {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.preview-body .movie-tags {
+  margin-top: 10px;
+}
+
+.preview-meta {
+  flex-wrap: wrap;
+}
+
+.detail-people {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 14px;
+  margin-top: 18px;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.detail-people dt {
+  font-weight: 800;
+  color: var(--accent-pink);
+}
+
+.detail-people dd {
+  margin: 0;
+  color: var(--on-image-muted);
+}
+
+/* ---------- Preview: clickable popup and trailer ---------- */
+.movie-preview {
+  cursor: pointer;
+}
+
+.movie-preview .preview-actions a,
+.movie-preview .preview-actions button {
+  cursor: pointer;
+}
+
+.preview-media {
+  position: relative;
+}
+
+.preview-media {
+  overflow: hidden;
+}
+
+/* YouTube shows a thumbnail strip along the bottom edge while it thinks the viewer is seeking. A fade into the popup
+   color covers it, and only when a trailer plays (the backdrop image stays untouched). */
+.preview-media:has(.preview-trailer)::before,
+.preview-media:has(.preview-trailer)::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  pointer-events: none;
+}
+
+.preview-media:has(.preview-trailer)::after {
+  inset: auto 0 0 0;
+  height: 18%;
+  background: linear-gradient(0deg, var(--surface) 35%, transparent);
+}
+
+/* The same at the top edge, for the last line of YouTube's title bar. */
+.preview-media:has(.preview-trailer)::before {
+  inset: 0 0 auto 0;
+  height: 12%;
+  background: linear-gradient(180deg, var(--surface) 30%, transparent);
+  z-index: 1;
+}
+
+/* Larger than its box and centered, so the title bar, the progress bar and the logo that YouTube draws at the edges of
+   its player fall outside the visible area. */
+.preview-trailer {
+  position: absolute;
+  inset: -22%;
+  width: 144%;
+  height: 144%;
+  border: 0;
+  /* The embed never takes the pointer: a click on the trailer opens the detail page. */
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+
+.preview-trailer.ready {
+  opacity: 1;
 }

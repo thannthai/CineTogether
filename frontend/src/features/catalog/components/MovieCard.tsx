@@ -1,7 +1,9 @@
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
-import { moviePath, typeLabel } from '../moviePaths'
+import { differentTitle } from '../movieLabels'
+import { moviePath } from '../moviePaths'
 import type { MovieSummary } from '../types'
+import { MovieTags } from './MovieTags'
 import { MoviePreview } from './MoviePreview'
 import { useHoverPreview } from './useHoverPreview'
 
@@ -26,12 +28,17 @@ export function MovieCard({ movie }: { movie: MovieSummary }) {
               {movie.title.slice(0, 1)}
             </div>
           )}
+          <MovieTags
+            className="poster-tags"
+            part="badges"
+            quality={movie.quality}
+            type={movie.type}
+          />
+          <MovieTags className="poster-progress" part="progress" progress={movie.progress} type={movie.type} />
         </div>
+        {movie.releaseYear ? <p className="card-year">{movie.releaseYear}</p> : null}
         <h3>{movie.title}</h3>
-        <p>
-          {movie.releaseYear ? <span>{movie.releaseYear}</span> : null}
-          <span>{typeLabel(movie.type)}</span>
-        </p>
+        {differentTitle(movie) && <p className="original-title">{movie.originalTitle}</p>}
       </Link>
       {preview.anchor &&
         createPortal(

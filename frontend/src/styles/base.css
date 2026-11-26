@@ -173,7 +173,6 @@ input::placeholder {
   padding: 0 7px;
   border-radius: 999px;
   background: var(--accent-lavender);
-  border: 1.5px solid var(--surface);
   color: var(--sticker-text);
   font-size: 8px;
   font-weight: 800;
@@ -219,7 +218,8 @@ input::placeholder {
 
 .btn.glass {
   background: color-mix(in srgb, var(--on-image) 16%, transparent);
-  border-color: color-mix(in srgb, var(--on-image) 60%, transparent);
+  border-width: 1px;
+  border-color: color-mix(in srgb, var(--on-image) 32%, transparent);
   color: var(--on-image);
   backdrop-filter: blur(12px);
 }
@@ -254,7 +254,8 @@ input::placeholder {
   width: 48px;
   height: 48px;
   background: color-mix(in srgb, var(--on-image) 16%, transparent);
-  border-color: color-mix(in srgb, var(--on-image) 60%, transparent);
+  border-width: 1px;
+  border-color: color-mix(in srgb, var(--on-image) 32%, transparent);
   color: var(--on-image);
   backdrop-filter: blur(12px);
 }

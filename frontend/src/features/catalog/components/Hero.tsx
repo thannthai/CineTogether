@@ -1,18 +1,21 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAsync } from '../../../shared/lib/useAsync'
 import { Icon } from '../../../shared/ui/Icon'
 import { useSoon } from '../../../shared/ui/soonContext'
 import { SoonTag } from '../../../shared/ui/SoonTag'
 import { getMovieCached } from '../api'
-import { moviePath, typeLabel, watchPath } from '../moviePaths'
+import { differentTitle } from '../movieLabels'
+import { moviePath, watchPath } from '../moviePaths'
 import type { MovieSummary } from '../types'
+import { MovieTags } from './MovieTags'
 
 // The featured movies come from the home response. The list has no synopsis, so the selected
 // movie's detail is loaded for it, and it also carries the landscape image used as the background.
 export function Hero({ featured }: { featured: MovieSummary[] }) {
   const [index, setIndex] = useState(0)
   const openSoon = useSoon()
+  const navigate = useNavigate()
   const movie = featured[index]
   const detail = useAsync(() => getMovieCached(movie.providerKey, movie.movieId), `hero:${movie.providerKey}/${movie.movieId}`)
   const genres = movie.genres ?? []
@@ -22,16 +25,30 @@ export function Hero({ featured }: { featured: MovieSummary[] }) {
     detail.status === 'ready' ? (detail.data.backdropUrl ?? movie.posterUrl) : detail.status === 'error' ? movie.posterUrl : null
 
   return (
-    <section className="hero" aria-label="Phim nổi bật">
+    <section
+      className="hero"
+      aria-label="Phim nổi bật"
+      // Links and buttons keep their own action; any other click on the hero opens the detail page.
+      onClick={(event) => {
+        if (!(event.target as HTMLElement).closest('a, button')) navigate(moviePath(movie))
+      }}
+    >
       {background && <img key={background} className="hero-backdrop" src={background} alt="" />}
       <div className="hero-scrim" />
       <div className="hero-inner page-width">
         <div className="hero-copy">
           <h1>{movie.title}</h1>
+          {differentTitle(movie) && <p className="hero-original">{movie.originalTitle}</p>}
           <p className="hero-meta">
             {movie.releaseYear ? <span>{movie.releaseYear}</span> : null}
-            <span className="type-badge">{typeLabel(movie.type)}</span>
+            {detail.status === 'ready' && detail.data.duration && <span>{detail.data.duration}</span>}
           </p>
+          <MovieTags
+            className="hero-tags"
+            quality={movie.quality}
+            progress={detail.status === 'ready' ? (detail.data.progress ?? movie.progress) : movie.progress}
+            type={movie.type}
+          />
           {genres.length > 0 && (
             <ul className="hero-genres">
               {genres.slice(0, 4).map((genre) => (

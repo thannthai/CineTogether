@@ -173,10 +173,37 @@ the covers load, keeps its flat pastel color. The row has padding on top so a li
 home page now makes eight more provider requests (one per theme); if the provider turns out to be slow or rate limited,
 cache or reduce them. The previous and next episode buttons of the player are arrows only.
 
-Deferred on purpose (not blocking): a trailer in the hero and the hover preview (KKPhim has `trailer_url`, a YouTube link, for
-only some movies; needs a new `trailerUrl` field); a status label such as "Tập 6/24" or "Đang chiếu / Hoàn tất" (KKPhim has
-`status`, `episode_current`, `episode_total`; needs new API fields); Chiếu rạp, Anime and TV Shows lists and a year filter
-(need backend support); checking the mobile layout and the error and retry states in a browser.
+More movie information (done, verified 2026-11-26: backend 189 tests, frontend 102 tests, checked in Chrome with real
+data): the API now carries `originalTitle`, `quality`, `language` and `progress` on every movie, and the detail adds
+`releaseYear`, `duration`, `views`, `actors`, `directors` and `trailerUrl` (docs/design/api.md §2.2). The home hero features
+this year's most viewed movies only (views come from the details of the first 12 candidates, read in parallel with a 4 s
+limit; failures rank last). The UI shows quality, language and "Tập 8/24" / "Hoàn tất 36/36" / "Full" stickers, the
+Vietnamese title with the English one smaller, the whole hover popup opens the detail page (pointer cursor), and the popup
+plays the muted YouTube trailer when there is one (cropped so YouTube's own controls are hidden), else the backdrop.
+The detail page shows year, duration, directors and actors (views are not shown; they only rank the hero).
+
+Movie tag and card polish (done 2026-11-26, checked in Chrome by the user; `npm run lint`, `npm test` 102 tests, `npm run build`):
+the movie type tag ("Phim bộ" / "Phim lẻ") is gone from the hero, detail page, popup and search rows; search rows show the
+original title and "year • episode label". The movie card has the quality (FHD or HD) at the top right of the poster, the
+episode label at the bottom left, and the year above the title; the language tag is not on cards (it stays in the popup and
+detail page, not in the hero). Quality and language are neutral chips (translucent purple-grey with a 1px inner outline); only
+the episode tag is colored. The hero opens the detail page on a click (pointer cursor; links and buttons keep their action).
+The glass buttons, the popup's secondary buttons and the "Sắp ra mắt" tag have thinner or no borders. The popup trailer keeps
+the 144% crop and now fades its top and bottom edges into the popup color to hide YouTube's title and seek thumbnail strip;
+YouTube's center pause and previous/next buttons still show (dropping `loop` and `playlist` may remove the arrows, not tried).
+Findings: the provider's list endpoints carry no total episode count (only the detail does), so cards show "Tập 2", not
+"Tập 2/12", unless the show is finished; hero, popup and detail show the total. Some synopses end with "…" because KKPhim
+itself cuts them. KKPhim has Thuyết Minh and Lồng Tiếng versions as separate servers for about 1 in 5 movies, but the
+backend picks only the first server, so there is no audio-version choice yet (idea for later, needs an API change).
+
+Slice 5 (done): `/together` is a "Sắp ra mắt" page with sample rooms built from real posters, labelled "Dữ liệu minh họa";
+every action opens the shared Soon dialog. Rooms and the Watch Party engine are still not built.
+
+Known concerns: home does about 12 extra detail requests for the hero plus 8 for theme covers (no cache by decision);
+the trailer embed depends on YouTube allowing embedding; mobile layout, error states, fullscreen and Safari unverified.
+
+Deferred on purpose (not blocking): quality selector (only useful when a stream has more than one level), trailer in the
+hero, Chiếu rạp, Anime and TV Shows lists and a year filter (need backend support), TMDb/OMDb only if ever needed.
 
 ## Blockers
 

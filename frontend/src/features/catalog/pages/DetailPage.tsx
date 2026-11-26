@@ -8,8 +8,10 @@ import { SoonTag } from '../../../shared/ui/SoonTag'
 import { browseMovies, getMovieCached } from '../api'
 import { browseHref } from '../browseFilters'
 import { MovieRow } from '../components/MovieRow'
+import { MovieTags } from '../components/MovieTags'
 import { genreSlug } from '../filters'
-import { typeLabel, watchPath } from '../moviePaths'
+import { differentTitle } from '../movieLabels'
+import { watchPath } from '../moviePaths'
 import type { MovieDetail, MovieSummary } from '../types'
 import '../catalog.css'
 
@@ -93,10 +95,18 @@ export function DetailPage() {
           {movie.posterUrl && <img className="detail-poster" src={movie.posterUrl} alt={movie.title} />}
           <div className="detail-copy">
             <h1>{movie.title}</h1>
+            {differentTitle(movie) && <p className="hero-original">{movie.originalTitle}</p>}
             <p className="hero-meta">
-              <span className="type-badge">{typeLabel(movie.type)}</span>
-              {movie.episodes.length > 1 && <span>{movie.episodes.length} tập</span>}
+              {movie.releaseYear ? <span>{movie.releaseYear}</span> : null}
+              {movie.duration && <span>{movie.duration}</span>}
             </p>
+            <MovieTags
+              className="hero-tags"
+              quality={movie.quality}
+              language={movie.language}
+              progress={movie.progress}
+              type={movie.type}
+            />
             {genres.length > 0 && (
               <ul className="hero-genres">
                 {genres.map((genre) => {
@@ -108,6 +118,22 @@ export function DetailPage() {
               </ul>
             )}
             {movie.synopsis && <p className="detail-synopsis">{movie.synopsis}</p>}
+            {!!(movie.actors?.length || movie.directors?.length) && (
+              <dl className="detail-people">
+                {movie.directors?.length ? (
+                  <>
+                    <dt>Đạo diễn</dt>
+                    <dd>{movie.directors.join(', ')}</dd>
+                  </>
+                ) : null}
+                {movie.actors?.length ? (
+                  <>
+                    <dt>Diễn viên</dt>
+                    <dd>{movie.actors.join(', ')}</dd>
+                  </>
+                ) : null}
+              </dl>
+            )}
             <div className="hero-actions">
               {firstEpisode ? (
                 <Link className="btn primary large" to={watchPath(movie, firstEpisode.episodeId)}>
