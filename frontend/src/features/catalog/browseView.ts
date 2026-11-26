@@ -1,4 +1,5 @@
 import type { BrowseFilters } from './browseFilters'
+import { parseCountries } from './countrySelection'
 import { COUNTRIES, GENRES, type FilterOption } from './filters'
 
 const nameOf = (list: FilterOption[], slug: string) => list.find((o) => o.slug === slug)?.name ?? slug
@@ -6,16 +7,18 @@ const nameOf = (list: FilterOption[], slug: string) => list.find((o) => o.slug =
 // The heading of the browse page for the current filters.
 export function browseTitle({ type, genre, country, q }: BrowseFilters): string {
   if (q) return `Kết quả cho “${q}”`
+  const countries = parseCountries(country)
   const parts = [
     type === 'MOVIE' ? 'Phim lẻ' : type === 'SERIES' ? 'Phim bộ' : null,
     genre ? nameOf(GENRES, genre) : null,
-    country ? nameOf(COUNTRIES, country) : null,
+    countries.length > 0 ? countries.map((slug) => nameOf(COUNTRIES, slug)).join(', ') : null,
   ].filter((part): part is string => part !== null)
   return parts.length > 0 ? parts.join(' · ') : 'Phim mới cập nhật'
 }
 
+// Each selected country counts, like the chips shown for the active filters.
 export const activeFilterCount = ({ type, genre, country }: BrowseFilters): number =>
-  [type, genre, country].filter(Boolean).length
+  [type, genre].filter(Boolean).length + parseCountries(country).length
 
 export type PageWindow = { items: (number | '…')[]; prev: number | null; next: number | null }
 

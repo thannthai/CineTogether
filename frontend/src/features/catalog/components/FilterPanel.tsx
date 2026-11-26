@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { type BrowseFilters, type MovieTypeFilter } from '../browseFilters'
+import { countriesParam, MAX_COUNTRIES, parseCountries, toggleCountry } from '../countrySelection'
 import { COUNTRIES, GENRES, type FilterOption } from '../filters'
 
 type Draft = Pick<BrowseFilters, 'type' | 'genre' | 'country'>
@@ -46,6 +47,50 @@ function Row<T extends string | undefined>({
   )
 }
 
+// Several choices at once. "Tất cả" is lit only while nothing else is chosen, and choosing it clears the others.
+function MultiRow({
+  label,
+  options,
+  selected,
+  onChange,
+}: {
+  label: string
+  options: FilterOption[]
+  selected: string[]
+  onChange: (selected: string[]) => void
+}) {
+  const full = selected.length >= MAX_COUNTRIES
+  return (
+    <div className="filter-row">
+      <span className="filter-label">{label}</span>
+      <div className="filter-chips">
+        <button
+          className={selected.length === 0 ? 'selected' : ''}
+          aria-pressed={selected.length === 0}
+          onClick={() => onChange([])}
+        >
+          Tất cả
+        </button>
+        {options.map((option) => {
+          const on = selected.includes(option.slug)
+          return (
+            <button
+              key={option.slug}
+              className={on ? 'selected' : ''}
+              aria-pressed={on}
+              disabled={full && !on}
+              title={full && !on ? `Chọn tối đa ${MAX_COUNTRIES} quốc gia` : undefined}
+              onClick={() => onChange(toggleCountry(selected, option.slug))}
+            >
+              {option.name}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 const slugOptions = (list: FilterOption[]) => [
   { value: undefined as string | undefined, label: 'Tất cả' },
   ...list.map((option) => ({ value: option.slug as string | undefined, label: option.name })),
@@ -54,9 +99,11 @@ const slugOptions = (list: FilterOption[]) => [
 // Choices are kept as a draft and only change the URL when "Áp dụng" is pressed.
 // The page remounts this panel (by key) whenever the applied filters change.
 export function FilterPanel({ applied, onApply, onClear }: Props) {
-  const [draft, setDraft] = useState<Draft>(applied)
+  const [draft, setDraft] = useState<Draft>({ ...applied, country: countriesParam(parseCountries(applied.country)) })
   const changed =
-    draft.type !== applied.type || draft.genre !== applied.genre || draft.country !== applied.country
+    draft.type !== applied.type ||
+    draft.genre !== applied.genre ||
+    draft.country !== countriesParam(parseCountries(applied.country))
 
   return (
     <div className="filter-panel">
@@ -67,11 +114,11 @@ export function FilterPanel({ applied, onApply, onClear }: Props) {
         value={draft.genre}
         onChange={(genre) => setDraft({ ...draft, genre })}
       />
-      <Row
+      <MultiRow
         label="Quốc gia"
-        options={slugOptions(COUNTRIES)}
-        value={draft.country}
-        onChange={(country) => setDraft({ ...draft, country })}
+        options={COUNTRIES}
+        selected={parseCountries(draft.country)}
+        onChange={(selected) => setDraft({ ...draft, country: countriesParam(selected) })}
       />
       <div className="filter-actions">
         <button className="btn primary" disabled={!changed} onClick={() => onApply(draft)}>

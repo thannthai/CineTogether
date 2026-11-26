@@ -600,7 +600,7 @@ a.movie-card:hover h3 {
   height: 52px;
   padding-inline: 20px;
   background: var(--surface);
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: 999px;
   box-shadow: var(--shadow-sm);
   color: var(--text-muted);
@@ -632,7 +632,7 @@ a.movie-card:hover h3 {
   height: 52px;
   padding-inline: 22px;
   background: var(--surface);
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: 999px;
   box-shadow: var(--shadow-sm);
   font-size: 13px;
@@ -641,7 +641,7 @@ a.movie-card:hover h3 {
 
 .filter-toggle:hover,
 .filter-toggle.open {
-  border-color: var(--primary);
+  border-color: color-mix(in srgb, var(--primary) 55%, transparent);
 }
 
 .filter-toggle.open {
@@ -669,7 +669,7 @@ a.movie-card:hover h3 {
   margin-top: 16px;
   padding: 8px 26px 22px;
   background: var(--surface);
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: 26px;
   box-shadow: var(--shadow);
 }
@@ -701,14 +701,14 @@ a.movie-card:hover h3 {
   height: 34px;
   padding-inline: 15px;
   background: var(--surface);
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
 }
 
 .filter-chips button:hover {
-  border-color: var(--primary);
+  border-color: color-mix(in srgb, var(--primary) 55%, transparent);
   background: var(--surface-soft);
 }
 
@@ -723,6 +723,15 @@ a.movie-card:hover h3 {
   display: flex;
   gap: 12px;
   padding-top: 20px;
+}
+
+.filter-actions .btn.secondary {
+  border-width: 1px;
+  border-color: color-mix(in srgb, var(--primary) 45%, transparent);
+}
+
+.filter-actions .btn.secondary:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--primary) 75%, transparent);
 }
 
 .active-filters {
@@ -742,7 +751,7 @@ a.movie-card:hover h3 {
   height: 30px;
   padding-inline: 12px;
   background: var(--primary-soft);
-  border: 1.5px solid var(--primary);
+  border: 1px solid transparent;
   border-radius: 999px;
   font-size: 11px;
   font-weight: 700;
@@ -1463,4 +1472,9 @@ a.page-step:hover {
 
 .preview-trailer.ready {
   opacity: 1;
+}
+
+.filter-chips button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }

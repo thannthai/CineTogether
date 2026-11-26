@@ -69,3 +69,14 @@ describe('pageWindow', () => {
     expect(pageWindow(3, true)).toEqual({ items: [1, 2, 3, 4], prev: 2, next: 4 })
   })
 })
+
+describe('several countries', () => {
+  it('lists their readable names in the title', () => {
+    expect(browseTitle({ country: 'han-quoc,trung-quoc' })).toBe('Hàn Quốc, Trung Quốc')
+    expect(browseTitle({ type: 'SERIES', country: 'han-quoc,khong-co' })).toBe('Phim bộ · Hàn Quốc, khong-co')
+  })
+
+  it('counts each country as a filter, like the chips that are shown', () => {
+    expect(activeFilterCount({ type: 'SERIES', country: 'han-quoc,trung-quoc' })).toBe(3)
+  })
+})

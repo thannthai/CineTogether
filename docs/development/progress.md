@@ -196,6 +196,16 @@ Findings: the provider's list endpoints carry no total episode count (only the d
 itself cuts them. KKPhim has Thuyết Minh and Lồng Tiếng versions as separate servers for about 1 in 5 movies, but the
 backend picks only the first server, so there is no audio-version choice yet (idea for later, needs an API change).
 
+Several countries in the browse filter (done 2026-11-27; backend `./gradlew test` 200 tests, frontend `npm test` 111 tests,
+lint and build pass): `GET /movies` takes up to 5 `country` slugs, comma-separated or repeated, matched with OR (the
+provider treats a comma as OR; its genre filter does too, so `genre` stays a single value because AND would need many
+provider requests per page). Rules live in `CountryFilter` (blank and repeated values dropped, max 5, lowercase slug with
+single hyphens); a breach is 400 `VALIDATION_ERROR`; `docs/design/api.md` is updated. In the UI the country row is
+multi-select ("Tất cả" lights only when nothing else is chosen, the rest dim at 5), the title lists the names, each country
+has its own "Đang lọc" chip and the filter count counts each country (`countrySelection.ts` holds the pure rules). Checked
+with `curl` against the running backend and the real provider (OR result, 400 for 6 slugs and for a bad slug). Not yet
+checked by eye in the browser. The filter panel, header menu, search field and buttons also got thinner (1px) or no borders.
+
 Slice 5 (done): `/together` is a "Sắp ra mắt" page with sample rooms built from real posters, labelled "Dữ liệu minh họa";
 every action opens the shared Soon dialog. Rooms and the Watch Party engine are still not built.
 

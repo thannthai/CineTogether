@@ -119,7 +119,6 @@
 
 .nav-item.active {
   color: var(--primary-strong);
-  border-color: var(--primary);
   background: var(--primary-soft);
 }
 
@@ -466,7 +465,6 @@
 .drawer-links > a.active,
 .drawer-group > button.active {
   color: var(--primary-strong);
-  border-color: var(--primary);
   background: var(--primary-soft);
 }
 

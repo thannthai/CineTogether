@@ -6,6 +6,7 @@ import { Icon } from '../../../shared/ui/Icon'
 import { browseMovies } from '../api'
 import { browseHref, parseBrowseFilters, parsePage, type BrowseFilters } from '../browseFilters'
 import { activeFilterCount, browseTitle } from '../browseView'
+import { countriesParam, parseCountries, toggleCountry } from '../countrySelection'
 import { COUNTRIES, GENRES } from '../filters'
 import { FilterPanel } from '../components/FilterPanel'
 import { MovieCard, MovieCardSkeleton } from '../components/MovieCard'
@@ -47,8 +48,13 @@ export function BrowsePage() {
   if (filters.genre) {
     removable.push({ label: nameOf(GENRES, filters.genre), remove: () => go({ ...filters, genre: undefined }) })
   }
-  if (filters.country) {
-    removable.push({ label: nameOf(COUNTRIES, filters.country), remove: () => go({ ...filters, country: undefined }) })
+  // One chip per country; removing one keeps the others.
+  const countries = parseCountries(filters.country)
+  for (const slug of countries) {
+    removable.push({
+      label: nameOf(COUNTRIES, slug),
+      remove: () => go({ ...filters, country: countriesParam(toggleCountry(countries, slug)) }),
+    })
   }
 
   return (
