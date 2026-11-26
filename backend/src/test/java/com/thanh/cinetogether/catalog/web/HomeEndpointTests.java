@@ -8,6 +8,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.Year;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -46,6 +48,26 @@ class HomeEndpointTests {
                         List.of()))
                 .toList();
         return new MoviePage(items, 0, 20, false);
+    }
+
+    @Test
+    void featuredPrefersMoviesReleasedThisYear() throws Exception {
+        int year = Year.now(ZoneOffset.UTC).getValue();
+        MovieType type = MovieType.SERIES;
+        List<MovieSummary> items = List.of(
+                new MovieSummary("kkphim", "old-1", "Old 1", type, null, year - 6, List.of()),
+                new MovieSummary("kkphim", "new-1", "New 1", type, null, year, List.of()),
+                new MovieSummary("kkphim", "old-2", "Old 2", type, null, year - 3, List.of()),
+                new MovieSummary("kkphim", "new-2", "New 2", MovieType.MOVIE, null, year, List.of()));
+        given(movieProvider.browse(any())).willReturn(new MoviePage(items, 0, 20, false));
+
+        mockMvc.perform(get("/api/v1/catalog/home"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.featured.length()").value(4))
+                .andExpect(jsonPath("$.featured[0].movieId").value("new-1"))
+                .andExpect(jsonPath("$.featured[1].movieId").value("new-2"))
+                .andExpect(jsonPath("$.featured[2].movieId").value("old-1"))
+                .andExpect(jsonPath("$.sections[0].items[0].movieId").value("old-1"));
     }
 
     @Test

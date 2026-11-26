@@ -233,7 +233,10 @@ Each `MovieSummary` includes `providerKey`, `movieId`, `title`, `type`, and opti
 Only collections supported by the provider or curated data are returned.
 
 The provider has no "featured" list, so the home page is derived from one provider call (the first page of the newest
-updates): `featured` is the first 5 movies and `new-updates` holds the whole page. An unavailable provider is `503`.
+updates): `new-updates` holds the whole page in the provider's order, and `featured` is 5 movies of it, taken from those
+released this year or later first (single films, series and cinema releases alike), then filled from the rest in the same
+order. The provider orders by last update, so an old series with a new episode can be first in `new-updates`. An
+unavailable provider is `503`.
 
 **Movie detail response:**
 
