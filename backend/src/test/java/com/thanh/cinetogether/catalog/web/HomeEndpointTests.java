@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.time.Year;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,8 @@ import com.thanh.cinetogether.catalog.domain.MovieProvider;
 import com.thanh.cinetogether.catalog.domain.ProviderUnavailableException;
 import com.thanh.cinetogether.catalog.domain.browse.BrowseQuery;
 import com.thanh.cinetogether.catalog.domain.browse.Paging;
+import com.thanh.cinetogether.catalog.domain.movie.EpisodeProgress;
+import com.thanh.cinetogether.catalog.domain.movie.MovieDetail;
 import com.thanh.cinetogether.catalog.domain.movie.MoviePage;
 import com.thanh.cinetogether.catalog.domain.movie.MovieSummary;
 import com.thanh.cinetogether.catalog.domain.movie.MovieType;
@@ -42,36 +45,69 @@ class HomeEndpointTests {
     @MockitoBean
     private MovieProvider movieProvider;
 
+    private static final int THIS_YEAR = Year.now(ZoneOffset.UTC).getValue();
+
     private static MoviePage pageOf(int count) {
         List<MovieSummary> items = IntStream.rangeClosed(1, count)
-                .mapToObj(i -> new MovieSummary("kkphim", "movie-" + i, "Movie " + i, MovieType.MOVIE, null, 2024,
+                .mapToObj(i -> new MovieSummary("kkphim", "movie-" + i, "Movie " + i, MovieType.MOVIE, null, THIS_YEAR,
                         List.of()))
                 .toList();
         return new MoviePage(items, 0, 20, false);
     }
 
-    @Test
-    void featuredPrefersMoviesReleasedThisYear() throws Exception {
-        int year = Year.now(ZoneOffset.UTC).getValue();
-        MovieType type = MovieType.SERIES;
-        List<MovieSummary> items = List.of(
-                new MovieSummary("kkphim", "old-1", "Old 1", type, null, year - 6, List.of()),
-                new MovieSummary("kkphim", "new-1", "New 1", type, null, year, List.of()),
-                new MovieSummary("kkphim", "old-2", "Old 2", type, null, year - 3, List.of()),
-                new MovieSummary("kkphim", "new-2", "New 2", MovieType.MOVIE, null, year, List.of()));
-        given(movieProvider.browse(any())).willReturn(new MoviePage(items, 0, 20, false));
-
-        mockMvc.perform(get("/api/v1/catalog/home"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.featured.length()").value(4))
-                .andExpect(jsonPath("$.featured[0].movieId").value("new-1"))
-                .andExpect(jsonPath("$.featured[1].movieId").value("new-2"))
-                .andExpect(jsonPath("$.featured[2].movieId").value("old-1"))
-                .andExpect(jsonPath("$.sections[0].items[0].movieId").value("old-1"));
+    private static MovieDetail detailWithViews(String movieId, int views) {
+        return new MovieDetail("kkphim", movieId, movieId, null, MovieType.SERIES, null, null, null, List.of(),
+                List.of(), THIS_YEAR, null, null, null, EpisodeProgress.NONE, views, List.of(), List.of(), null);
     }
 
     @Test
-    void homeIsPublicAndFeaturesTheFirstFiveOfTheNewUpdates() throws Exception {
+    void featuredAreThisYearsMostViewedMoviesAndNeverOlderOnes() throws Exception {
+        MovieType type = MovieType.SERIES;
+        List<MovieSummary> items = List.of(
+                new MovieSummary("kkphim", "old-hit", "Old", type, null, THIS_YEAR - 6, List.of()),
+                new MovieSummary("kkphim", "new-1", "New 1", type, null, THIS_YEAR, List.of()),
+                new MovieSummary("kkphim", "new-2", "New 2", MovieType.MOVIE, null, THIS_YEAR, List.of()),
+                new MovieSummary("kkphim", "new-3", "New 3", type, null, THIS_YEAR, List.of()));
+        given(movieProvider.browse(any())).willReturn(new MoviePage(items, 0, 20, false));
+        given(movieProvider.detail("new-1")).willReturn(Optional.of(detailWithViews("new-1", 10)));
+        given(movieProvider.detail("new-2")).willReturn(Optional.of(detailWithViews("new-2", 900)));
+        // new-3's views are unknown (the provider has no detail), so it ranks after the known ones.
+
+        mockMvc.perform(get("/api/v1/catalog/home"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.featured.length()").value(3))
+                .andExpect(jsonPath("$.featured[0].movieId").value("new-2"))
+                .andExpect(jsonPath("$.featured[1].movieId").value("new-1"))
+                .andExpect(jsonPath("$.featured[2].movieId").value("new-3"))
+                .andExpect(jsonPath("$.sections[0].items[0].movieId").value("old-hit"));
+    }
+
+    @Test
+    void aFailingDetailDoesNotBreakTheHomePage() throws Exception {
+        given(movieProvider.browse(any())).willReturn(pageOf(3));
+        given(movieProvider.detail("movie-2")).willThrow(new ProviderUnavailableException("slow"));
+        given(movieProvider.detail("movie-3")).willReturn(Optional.of(detailWithViews("movie-3", 50)));
+
+        mockMvc.perform(get("/api/v1/catalog/home"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.featured.length()").value(3))
+                .andExpect(jsonPath("$.featured[0].movieId").value("movie-3"));
+    }
+
+    @Test
+    void withoutAnyMovieOfThisYearNothingIsFeaturedButTheUpdatesAreStillListed() throws Exception {
+        given(movieProvider.browse(any())).willReturn(new MoviePage(
+                List.of(new MovieSummary("kkphim", "old", "Old", MovieType.MOVIE, null, THIS_YEAR - 3, List.of())), 0,
+                20, false));
+
+        mockMvc.perform(get("/api/v1/catalog/home"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.featured.length()").value(0))
+                .andExpect(jsonPath("$.sections[0].items.length()").value(1));
+    }
+
+    @Test
+    void homeIsPublicAndFeaturesFiveOfTheNewUpdatesInTheirOrderWhenViewsAreUnknown() throws Exception {
         given(movieProvider.browse(any())).willReturn(pageOf(7));
 
         mockMvc.perform(get("/api/v1/catalog/home"))

@@ -22,8 +22,9 @@ final class KKPhimResponses {
     record Pagination(int currentPage, int totalPages) {
     }
 
-    record Item(String name, String slug, String type, @JsonProperty("poster_url") String posterUrl, Integer year,
-            List<Category> category) {
+    record Item(String name, @JsonProperty("origin_name") String originName, String slug, String type,
+            @JsonProperty("poster_url") String posterUrl, Integer year, String quality, String lang,
+            @JsonProperty("episode_current") String episodeCurrent, List<Category> category) {
     }
 
     record Category(String name) {
@@ -32,8 +33,11 @@ final class KKPhimResponses {
     record DetailResponse(Movie movie, List<Server> episodes) {
     }
 
-    record Movie(String name, String slug, String type, String content, @JsonProperty("poster_url") String posterUrl,
-            @JsonProperty("thumb_url") String thumbUrl, List<Category> category) {
+    record Movie(String name, @JsonProperty("origin_name") String originName, String slug, String type, String content,
+            @JsonProperty("poster_url") String posterUrl, @JsonProperty("thumb_url") String thumbUrl, Integer year,
+            String quality, String lang, String time, @JsonProperty("episode_current") String episodeCurrent,
+            @JsonProperty("episode_total") String episodeTotal, String status, Integer view, List<String> actor,
+            List<String> director, @JsonProperty("trailer_url") String trailerUrl, List<Category> category) {
     }
 
     record Server(@JsonProperty("server_data") List<EpisodeItem> serverData) {

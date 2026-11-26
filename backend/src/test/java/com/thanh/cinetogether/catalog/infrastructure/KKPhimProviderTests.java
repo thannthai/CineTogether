@@ -29,6 +29,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import com.thanh.cinetogether.catalog.domain.ProviderUnavailableException;
 import com.thanh.cinetogether.catalog.domain.browse.BrowseQuery;
 import com.thanh.cinetogether.catalog.domain.movie.Episode;
+import com.thanh.cinetogether.catalog.domain.movie.EpisodeProgress;
 import com.thanh.cinetogether.catalog.domain.movie.MovieDetail;
 import com.thanh.cinetogether.catalog.domain.movie.MoviePage;
 import com.thanh.cinetogether.catalog.domain.movie.PlaybackSource;
@@ -159,6 +160,68 @@ class KKPhimProviderTests {
                 "First line\nSecond & last", "https://img.example/one.jpg", "https://img.example/one-thumb.jpg",
                 List.of("Drama"),
                 List.of(new Episode("tap-1", "Tập 1"), new Episode("tap-2", "Tập 2"))));
+    }
+
+    @Test
+    void browseMapsTheNamesTagsAndProgressOfEachMovie() {
+        server.respond(LIST_PATH, """
+                {"data": {"items": [
+                  {"name": "Thứ Nữ", "origin_name": "Noble Daughter", "slug": "thu-nu", "type": "series",
+                   "poster_url": "https://img.example/thu-nu.jpg", "year": 2026, "quality": "FHD", "lang": "Vietsub",
+                   "episode_current": "Tập 8", "category": []},
+                  {"name": "Under Siege", "slug": "under-siege", "type": "series", "year": 2026,
+                   "episode_current": "Hoàn Tất (8/8)", "quality": " ", "lang": "", "category": []},
+                  {"name": "Dune", "origin_name": "Dune: Part Two", "slug": "dune", "type": "single",
+                   "episode_current": "Full", "category": []}],
+                 "params": {"pagination": {"currentPage": 1, "totalPages": 1}}}}
+                """);
+
+        List<MovieSummary> movies = provider.browse(new BrowseQuery(null, null, null, null, Paging.of(null, null)))
+                .items();
+
+        assertThat(movies.get(0).originalTitle()).isEqualTo("Noble Daughter");
+        assertThat(movies.get(0).quality()).isEqualTo("FHD");
+        assertThat(movies.get(0).language()).isEqualTo("Vietsub");
+        assertThat(movies.get(0).progress()).isEqualTo(new EpisodeProgress(8, null, false));
+        assertThat(movies.get(1).originalTitle()).isNull();
+        assertThat(movies.get(1).quality()).as("a blank value is unknown").isNull();
+        assertThat(movies.get(1).language()).isNull();
+        assertThat(movies.get(1).progress()).isEqualTo(new EpisodeProgress(8, 8, true));
+        assertThat(movies.get(2).progress()).isEqualTo(new EpisodeProgress(null, null, true));
+    }
+
+    @Test
+    void detailMapsTheExtraInformation() {
+        server.respond("/phim/thu-nu", """
+                {"movie": {"name": "Thứ Nữ", "origin_name": "Noble Daughter", "slug": "thu-nu", "type": "series",
+                           "year": 2026, "quality": "FHD", "lang": "Vietsub", "time": "19 phút/tập",
+                           "episode_current": "Tập 8", "episode_total": "24", "status": "ongoing", "view": 77,
+                           "actor": ["Richard Li", "  ", "Wang Junbi"], "director": ["Đang cập nhật"],
+                           "trailer_url": "https://www.youtube.com/watch?v=abc123", "category": []},
+                 "episodes": []}
+                """);
+
+        MovieDetail detail = provider.detail("thu-nu").orElseThrow();
+
+        assertThat(detail.originalTitle()).isEqualTo("Noble Daughter");
+        assertThat(detail.releaseYear()).isEqualTo(2026);
+        assertThat(detail.quality()).isEqualTo("FHD");
+        assertThat(detail.language()).isEqualTo("Vietsub");
+        assertThat(detail.duration()).isEqualTo("19 phút/tập");
+        assertThat(detail.progress()).isEqualTo(new EpisodeProgress(8, 24, false));
+        assertThat(detail.views()).isEqualTo(77);
+        assertThat(detail.actors()).as("blank names are dropped").containsExactly("Richard Li", "Wang Junbi");
+        assertThat(detail.directors()).as("a placeholder is not a name").isEmpty();
+        assertThat(detail.trailerUrl()).isEqualTo("https://www.youtube.com/watch?v=abc123");
+    }
+
+    @Test
+    void aTrailerThatIsNotAnHttpLinkIsDropped() {
+        server.respond("/phim/a", "{\"movie\": {\"name\": \"A\", \"slug\": \"a\", \"trailer_url\": \"javascript:alert(1)\"}}");
+        server.respond("/phim/b", "{\"movie\": {\"name\": \"B\", \"slug\": \"b\", \"trailer_url\": \"\"}}");
+
+        assertThat(provider.detail("a").orElseThrow().trailerUrl()).isNull();
+        assertThat(provider.detail("b").orElseThrow().trailerUrl()).isNull();
     }
 
     @Test

@@ -75,9 +75,12 @@ public class KKPhimProvider implements MovieProvider {
         Data data = response.data();
         List<Item> items = data.items() == null ? List.of() : data.items();
         List<MovieSummary> movies = items.stream()
-                .map(item -> new MovieSummary(KEY, item.slug(), item.name(), KKPhimMapping.movieType(item.type()),
+                .map(item -> new MovieSummary(KEY, item.slug(), item.name(), KKPhimMapping.blankToNull(item.originName()),
+                        KKPhimMapping.movieType(item.type()),
                         KKPhimMapping.imageUrl(data.cdnImageDomain(), item.posterUrl()), item.year(),
-                        item.category() == null ? List.of() : item.category().stream().map(Category::name).toList()))
+                        item.category() == null ? List.of() : item.category().stream().map(Category::name).toList(),
+                        KKPhimMapping.blankToNull(item.quality()), KKPhimMapping.blankToNull(item.lang()),
+                        KKPhimMapping.progress(item.episodeCurrent(), null, null)))
                 .toList();
         boolean hasNext = data.params() != null && data.params().pagination() != null
                 && KKPhimMapping.hasNext(data.params().pagination().currentPage(),
@@ -111,10 +114,15 @@ public class KKPhimProvider implements MovieProvider {
             }
         }
         return Optional.of(new MovieDetail(KEY, movie.slug() != null ? movie.slug() : movieId, movie.name(),
-                KKPhimMapping.movieType(movie.type()), KKPhimMapping.plainText(movie.content()),
-                KKPhimMapping.imageUrl(null, movie.posterUrl()), KKPhimMapping.imageUrl(null, movie.thumbUrl()),
+                KKPhimMapping.blankToNull(movie.originName()), KKPhimMapping.movieType(movie.type()),
+                KKPhimMapping.plainText(movie.content()), KKPhimMapping.imageUrl(null, movie.posterUrl()),
+                KKPhimMapping.imageUrl(null, movie.thumbUrl()),
                 movie.category() == null ? List.of() : movie.category().stream().map(Category::name).toList(),
-                List.copyOf(episodes.values())));
+                List.copyOf(episodes.values()), movie.year(), KKPhimMapping.blankToNull(movie.quality()),
+                KKPhimMapping.blankToNull(movie.lang()), KKPhimMapping.blankToNull(movie.time()),
+                KKPhimMapping.progress(movie.episodeCurrent(), movie.episodeTotal(), movie.status()), movie.view(),
+                KKPhimMapping.names(movie.actor()), KKPhimMapping.names(movie.director()),
+                KKPhimMapping.trailerUrl(movie.trailerUrl())));
     }
 
     @Override

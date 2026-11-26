@@ -213,7 +213,12 @@ unusable response, the API answers `503` with code `PROVIDER_UNAVAILABLE`; the d
 }
 ```
 
-Each `MovieSummary` includes `providerKey`, `movieId`, `title`, `type`, and optional poster, release year, and genres.
+Each `MovieSummary` includes `providerKey`, `movieId`, `title`, `type`, and optional `originalTitle`, `posterUrl`,
+`releaseYear`, `genres`, `quality` (for example `FHD`), `language` (for example `Vietsub`) and `progress`. `progress` is
+`{ "current": 8, "total": 24, "completed": false }`: the latest episode, the planned number of episodes and whether the
+series is finished. `current` and `total` are null when the provider does not say (the list never has `total` for a
+series that is still airing, only the detail does), and a single-part movie is `{ "current": null, "total": null,
+"completed": true }`. Every optional field is null when unknown.
 
 `GET /catalog/home` returns:
 
@@ -234,9 +239,12 @@ Only collections supported by the provider or curated data are returned.
 
 The provider has no "featured" list, so the home page is derived from one provider call (the first page of the newest
 updates): `new-updates` holds the whole page in the provider's order, and `featured` is 5 movies of it, taken from those
-released this year or later first (single films, series and cinema releases alike), then filled from the rest in the same
-order. The provider orders by last update, so an old series with a new episode can be first in `new-updates`. An
-unavailable provider is `503`.
+released this year or later (single films, series and cinema releases alike) and ranked by the provider's view count,
+most viewed first. A movie from an earlier year is never featured, however much it is viewed, so fewer than 5 (or none)
+can be returned. The list has no view counts, so the backend reads them from the detail of the first 12 movies of this
+year in parallel (at most about 4 seconds); a movie whose detail fails or is late ranks after the known ones, in the
+provider's order. The provider orders `new-updates` by last update, so an old series with a new episode can be first
+there. An unavailable provider is `503`.
 
 **Movie detail response:**
 
@@ -245,7 +253,17 @@ unavailable provider is `503`.
   "providerKey": "provider-a",
   "movieId": "movie-123",
   "title": "Example Movie",
+  "originalTitle": "Example Movie (English)",
   "type": "SERIES",
+  "releaseYear": 2026,
+  "quality": "FHD",
+  "language": "Vietsub",
+  "duration": "19 phút/tập",
+  "progress": { "current": 8, "total": 24, "completed": false },
+  "views": 812,
+  "actors": ["Actor One"],
+  "directors": [],
+  "trailerUrl": "https://www.youtube.com/watch?v=abc123",
   "synopsis": "...",
   "posterUrl": "https://media.example/poster.jpg",
   "backdropUrl": "https://media.example/backdrop.jpg",
@@ -261,7 +279,12 @@ unavailable provider is `503`.
 }
 ```
 
-`backdropUrl` is the provider's landscape image (null when it has none); clients use it as a page background and fall back to `posterUrl`. The movie list items carry only `posterUrl`.
+`backdropUrl` is the provider's landscape image (null when it has none); clients use it as a page background and fall back
+to `posterUrl`. The movie list items carry only `posterUrl`. The detail also carries what the list does not: `releaseYear`,
+`duration` (the provider's text, for example "19 phút/tập"), `views`, `actors`, `directors` (placeholders such as "Đang cập
+nhật" are dropped, so the list can be empty), `trailerUrl` (only an `http` or `https` link; most movies have none) and the
+total in `progress`. A client shows a trailer only as the page that the link points to or inside an embed of a known
+player; it never runs the link as script.
 
 `synopsis` is plain text: the provider's HTML is removed, so clients show it as text. A single-part movie has one entry in
 `episodes`. When the provider lists the same episode on several servers, `episodes` contains it once, identified by

@@ -2,8 +2,11 @@ package com.thanh.cinetogether.catalog.infrastructure;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.thanh.cinetogether.catalog.domain.movie.EpisodeProgress;
 import com.thanh.cinetogether.catalog.domain.movie.MovieType;
 import com.thanh.cinetogether.catalog.domain.browse.Paging;
 
@@ -71,6 +74,79 @@ final class KKPhimMapping {
             return null;
         }
         return cdnBase.replaceAll("/+$", "") + "/" + path.replaceAll("^/+", "");
+    }
+
+
+    private static final Pattern PROGRESS_FRACTION = Pattern.compile("(\\d+)\\s*/\\s*(\\d+)");
+    private static final Pattern EPISODE_NUMBER = Pattern.compile("(?i)tập\\s*(\\d+)");
+
+    // The provider says "Tập 8", "Hoàn Tất (8/8)" or "Full" in one text, the planned total and the status apart.
+    // A label that says nothing about episodes (a trailer, "Đang cập nhật") gives no progress.
+    static EpisodeProgress progress(String label, String total, String status) {
+        String text = label == null ? "" : label.strip();
+        String lower = text.toLowerCase(java.util.Locale.ROOT);
+        if (lower.equals("full")) {
+            return new EpisodeProgress(null, null, true);
+        }
+
+        Integer current = null;
+        Integer planned = positiveNumber(total);
+        Matcher fraction = PROGRESS_FRACTION.matcher(text);
+        Matcher number = EPISODE_NUMBER.matcher(text);
+        if (fraction.find()) {
+            current = Integer.valueOf(fraction.group(1));
+            planned = Integer.valueOf(fraction.group(2));
+        } else if (number.find()) {
+            current = Integer.valueOf(number.group(1));
+        }
+        if (current == null) {
+            return EpisodeProgress.NONE;
+        }
+        boolean completed = lower.contains("hoàn tất") || "completed".equalsIgnoreCase(status);
+        return new EpisodeProgress(current, planned, completed);
+    }
+
+    private static Integer positiveNumber(String text) {
+        if (text == null) {
+            return null;
+        }
+        try {
+            int value = Integer.parseInt(text.strip());
+            return value > 0 ? value : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+
+    // The provider sends empty or blank text for what it does not know.
+    static String blankToNull(String text) {
+        return text == null || text.isBlank() ? null : text.strip();
+    }
+
+    // Names of people: blank entries and the provider's placeholder for "not known yet" are dropped.
+    static java.util.List<String> names(java.util.List<String> names) {
+        if (names == null) {
+            return java.util.List.of();
+        }
+        return names.stream()
+                .map(KKPhimMapping::blankToNull)
+                .filter(name -> name != null && !name.equalsIgnoreCase("Đang cập nhật"))
+                .toList();
+    }
+
+    // The trailer comes from a third party and is shown as a link or an embed: only http(s) is accepted.
+    static String trailerUrl(String link) {
+        String clean = blankToNull(link);
+        if (clean == null) {
+            return null;
+        }
+        try {
+            String scheme = URI.create(clean).getScheme();
+            return "http".equals(scheme) || "https".equals(scheme) ? clean : null;
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
 }

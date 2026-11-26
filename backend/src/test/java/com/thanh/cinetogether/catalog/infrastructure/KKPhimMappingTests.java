@@ -7,6 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import com.thanh.cinetogether.catalog.domain.movie.EpisodeProgress;
 import com.thanh.cinetogether.catalog.domain.movie.MovieType;
 import com.thanh.cinetogether.catalog.domain.browse.Paging;
 
@@ -92,6 +93,45 @@ class KKPhimMappingTests {
     @ValueSource(strings = {"   ", "<p> </p>"})
     void textWithNothingVisibleGivesNull(String html) {
         assertThat(KKPhimMapping.plainText(html)).isNull();
+    }
+
+
+    // KKPhim writes the progress as text: "Tập 8", "Hoàn Tất (8/8)" or "Full"; the total and the status come apart.
+    @Test
+    void aCompletedSeriesCarriesTheNumbersInTheLabel() {
+        assertThat(KKPhimMapping.progress("Hoàn Tất (8/8)", null, null)).isEqualTo(new EpisodeProgress(8, 8, true));
+        assertThat(KKPhimMapping.progress("HOÀN TẤT (3/3)", "3", "completed"))
+                .isEqualTo(new EpisodeProgress(3, 3, true));
+    }
+
+    @Test
+    void anOngoingSeriesHasTheLatestEpisodeAndTheTotalWhenKnown() {
+        assertThat(KKPhimMapping.progress("Tập 8", "24", "ongoing")).isEqualTo(new EpisodeProgress(8, 24, false));
+        assertThat(KKPhimMapping.progress("Tập 8", null, null)).isEqualTo(new EpisodeProgress(8, null, false));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"0", "?", "", "abc", "-3"})
+    void aTotalThatIsNotAPositiveNumberIsUnknown(String total) {
+        assertThat(KKPhimMapping.progress("Tập 8", total, "ongoing").total()).isNull();
+    }
+
+    @Test
+    void theStatusCanMarkASeriesCompletedWithoutTheWordInTheLabel() {
+        assertThat(KKPhimMapping.progress("Tập 36", "36", "completed")).isEqualTo(new EpisodeProgress(36, 36, true));
+    }
+
+    @Test
+    void aSingleMovieIsFullWithoutNumbers() {
+        assertThat(KKPhimMapping.progress("Full", null, null)).isEqualTo(new EpisodeProgress(null, null, true));
+        assertThat(KKPhimMapping.progress("FULL", "1", "completed")).isEqualTo(new EpisodeProgress(null, null, true));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"Trailer", "Đang cập nhật", "Sắp chiếu"})
+    void aLabelWithoutProgressGivesNothing(String label) {
+        assertThat(KKPhimMapping.progress(label, "0", "trailer")).isEqualTo(EpisodeProgress.NONE);
     }
 
 }
