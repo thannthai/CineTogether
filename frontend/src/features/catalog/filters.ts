@@ -88,3 +88,9 @@ const MENU_COUNTRY_SLUGS = [
 export const MENU_COUNTRIES: FilterOption[] = MENU_COUNTRY_SLUGS.map(
   (slug) => COUNTRIES.find((country) => country.slug === slug)!,
 )
+
+// The detail response lists genres by name only; this gives the slug the filters use, if there is one.
+export function genreSlug(name: string): string | undefined {
+  const wanted = name.trim().toLowerCase()
+  return GENRES.find((genre) => genre.name.toLowerCase() === wanted)?.slug
+}

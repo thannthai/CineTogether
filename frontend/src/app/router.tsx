@@ -1,5 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom'
-import { BrowsePage, HomePage } from '../features/catalog'
+import { BrowsePage, DetailPage, HomePage } from '../features/catalog'
 import { AppLayout } from './AppLayout'
 import { NotFoundPage, PagePlaceholder } from './PagePlaceholder'
 
@@ -10,7 +10,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: 'movies', element: <BrowsePage /> },
-      { path: 'movies/:providerKey/:movieId', element: <PagePlaceholder title="Chi tiết phim" /> },
+      { path: 'movies/:providerKey/:movieId', element: <DetailPage /> },
       {
         path: 'movies/:providerKey/:movieId/watch',
         element: <PagePlaceholder title="Xem phim" />,

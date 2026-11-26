@@ -112,6 +112,14 @@ provider server, never the real API. Order: pure rules, adapter against the fake
 rules. `episodeId` is the episode slug; playback uses the first provider server that has an `.m3u8` link for it. No
 cache in the MVP.
 
+Frontend slice 2c (movie detail page, `/movies/:providerKey/:movieId`) is done: the landscape image as the background with the
+poster, title, type and episode count, genre chips that open the filtered list (`genreSlug` maps the name to the filter
+slug), the full synopsis, "Xem ngay" to the first episode (`/watch?episode=...`), "Xem cùng" opening the coming-soon dialog,
+the episode list (hidden for a single-part movie), a "Phim cùng thể loại" row, the browser tab title, and loading, not found
+(404, also for an unknown provider) and error-with-retry states. The watch route is still a placeholder (slice 4). Verified
+with `npm run lint`, `npm test` (48 tests), `npm run build`, and in Chrome against the running backend for a series, a
+single-part movie and two unknown addresses. The retry state of a provider failure was not provoked.
+
 Deferred on purpose (not blocking): a trailer in the hero and the hover preview (KKPhim has `trailer_url`, a YouTube link, for
 only some movies; needs a new `trailerUrl` field); a status label such as "Tập 6/24" or "Đang chiếu / Hoàn tất" (KKPhim has
 `status`, `episode_current`, `episode_total`; needs new API fields); Chiếu rạp, Anime and TV Shows lists and a year filter
