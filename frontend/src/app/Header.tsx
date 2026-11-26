@@ -7,6 +7,7 @@ import {
   SearchPalette,
   type FilterOption,
 } from '../features/catalog'
+import { AccountMenu, useAuth, useAuthDialog } from '../features/auth'
 import { useTheme } from '../shared/lib/theme'
 import { Icon } from '../shared/ui/Icon'
 import { SoonTag } from '../shared/ui/SoonTag'
@@ -42,6 +43,8 @@ export function Header() {
   }
 
   const { theme, toggle: toggleTheme } = useTheme()
+  const auth = useAuth()
+  const { openLogin, openRegister } = useAuthDialog()
   const themeLabel = theme === 'dark' ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối'
 
   const [menu, setMenu] = useState<MenuKey | null>(null)
@@ -183,11 +186,17 @@ export function Header() {
               <Icon name="sun" size={18} />
             </span>
           </button>
-          {/* Login and sign-up open their dialogs once authentication is wired up. */}
-          <div className="header-auth">
-            <button className="login-link">Đăng nhập</button>
-            <button className="btn primary signup-btn">Đăng ký</button>
-          </div>
+          {auth.status === 'signedIn' && <AccountMenu />}
+          {auth.status === 'signedOut' && (
+            <div className="header-auth">
+              <button className="login-link" onClick={openLogin}>
+                Đăng nhập
+              </button>
+              <button className="btn primary signup-btn" onClick={openRegister}>
+                Đăng ký
+              </button>
+            </div>
+          )}
           <button
             className="icon-btn menu-toggle"
             aria-label={drawer ? 'Đóng menu' : 'Mở menu'}
@@ -254,10 +263,28 @@ export function Header() {
             <Icon name="chevron" size={15} />
           </Link>
         </div>
-        <div className="drawer-auth">
-          <button className="btn secondary">Đăng nhập</button>
-          <button className="btn primary">Đăng ký</button>
-        </div>
+        {auth.status === 'signedOut' && (
+          <div className="drawer-auth">
+            <button
+              className="btn secondary"
+              onClick={() => {
+                closeAll()
+                openLogin()
+              }}
+            >
+              Đăng nhập
+            </button>
+            <button
+              className="btn primary"
+              onClick={() => {
+                closeAll()
+                openRegister()
+              }}
+            >
+              Đăng ký
+            </button>
+          </div>
+        )}
       </aside>
       {searchOpen && <SearchPalette onClose={() => setSearchOpen(false)} />}
     </header>

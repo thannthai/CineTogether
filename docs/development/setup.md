@@ -221,7 +221,7 @@ kill <PID>
 ## Frontend (React + Vite + TypeScript)
 
 The app lives directly in `frontend/` (no nested folder). Stack: React 19, Vite 8, TypeScript, React Router, oxlint,
-Vitest for pure-logic unit tests; no UI framework or Supabase client yet (added with the Authentication milestone).
+Vitest for pure-logic unit tests, and the Supabase JS client for authentication; no UI framework.
 
 Setup and run, from `frontend/`:
 

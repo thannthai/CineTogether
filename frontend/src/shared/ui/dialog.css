@@ -25,3 +25,16 @@
   line-height: 1.8;
   color: var(--text-muted);
 }
+
+.modal {
+  position: fixed;
+  max-height: calc(100dvh - 36px);
+  overflow: auto;
+  padding: 30px 30px 26px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}

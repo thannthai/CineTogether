@@ -120,6 +120,21 @@ the episode list (hidden for a single-part movie), a "Phim cùng thể loại" r
 with `npm run lint`, `npm test` (48 tests), `npm run build`, and in Chrome against the running backend for a series, a
 single-part movie and two unknown addresses. The retry state of a provider failure was not provoked.
 
+Frontend slice 3 (login and profile) is implemented, with the real Supabase check still to do by hand: `@supabase/supabase-js`
+(lazy client in `shared/lib/supabase.ts`), `apiGetAuth` and `apiPatchAuth` send the Bearer token only for calls that need it
+(`GET` and `PATCH /me`; public endpoints never get a token, since the backend answers 401 to a bad one), `features/auth`
+with `AuthProvider` (session plus the profile from `GET /me`, with a fallback name from the sign-up metadata or the email),
+the login and register dialog (display name, email, password of 6+ characters, terms; an "check your email" step when the
+project asks for confirmation; an address that is already registered is detected), the profile dialog (`PATCH /me`) and the
+account menu in the header and drawer. Pure helpers are unit tested (62 tests): display-name rule mirroring the backend,
+email and password checks, and the Vietnamese messages for Supabase errors. Verified with `npm run lint`, `npm test`,
+`npm run build` and in Chrome for the form validation (no request is sent while a field is invalid). Not verified yet: a
+real sign-up and sign-in against Supabase, `GET /me` with the real token (including the name from `data.display_name`), and
+`PATCH /me`; they are done by hand because the assistant must not create accounts or type passwords on a hosted service.
+On 2026-11-26 the user signed in with a real account: the header shows the avatar menu with the name and the email, so the
+sign-in and the session work. Still to check by hand: renaming in "Hồ sơ" (`PATCH /me`), the session surviving a page reload,
+sign-out, and a new account whose sign-up carries a display name. The Authentication milestone stays open until then. Forgot-password is not built.
+
 Deferred on purpose (not blocking): a trailer in the hero and the hover preview (KKPhim has `trailer_url`, a YouTube link, for
 only some movies; needs a new `trailerUrl` field); a status label such as "Tập 6/24" or "Đang chiếu / Hoàn tất" (KKPhim has
 `status`, `episode_current`, `episode_total`; needs new API fields); Chiếu rạp, Anime and TV Shows lists and a year filter
