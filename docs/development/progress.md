@@ -112,6 +112,11 @@ provider server, never the real API. Order: pure rules, adapter against the fake
 rules. `episodeId` is the episode slug; playback uses the first provider server that has an `.m3u8` link for it. No
 cache in the MVP.
 
+Deferred on purpose (not blocking): a trailer in the hero and the hover preview (KKPhim has `trailer_url`, a YouTube link, for
+only some movies; needs a new `trailerUrl` field); a status label such as "Tập 6/24" or "Đang chiếu / Hoàn tất" (KKPhim has
+`status`, `episode_current`, `episode_total`; needs new API fields); Chiếu rạp, Anime and TV Shows lists and a year filter
+(need backend support); checking the mobile layout and the error and retry states in a browser.
+
 ## Blockers
 
 - WebSocket origin restrictions are not configured yet (needed with the WebSocket milestone).
@@ -218,8 +223,23 @@ is only 344x484 and looked bad stretched). Added to `MovieDetail`, the KKPhim ma
 carry only `posterUrl`); `./gradlew test` passes (162 tests). The hero shows the image full width with the five thumbnails
 at the bottom right and falls back to the poster when a movie has no landscape image. Verified in Chrome against the
 running backend. The image is upscaled about 2x on wide screens, so it is soft rather than razor sharp.
-Next: slice 2b (browse page with filter panel, grid and
-numbered pagination, search palette, hover preview), then 2c (detail page).
+Home `featured` now prefers movies released this year (or later), any type, then fills from the rest in the provider's
+order (`Featured.pick` with the injected `Clock`; `api.md` §2.2 updated), because the provider sorts by last update and an
+old series with a new episode used to lead the hero. `./gradlew test` passes (169 tests); checked on the running backend:
+all five featured movies are from 2026 while `new-updates` keeps the provider's order.
+
+Frontend slice 2b is done: the browse page (`/movies`) with the title for the current filters, a search field, a filter
+panel (type, genre, country; choices are applied with a button and kept in the URL together with `q` and `page`), removable
+filter chips, a 24-movie grid and numbered pagination that never shows a last page number (the API only has `hasNext`);
+the quick search palette (button or Cmd/Ctrl+K, six suggestions, keyboard navigation) opened from the header and the
+mobile drawer; and the hover preview on every movie card (opens after 300 ms on devices with a mouse, shows the landscape
+image, synopsis and actions; details are cached for the visit by `memoAsync`). The unit tests cover the URL and page
+helpers, the title, the page window, the cache and the popup position (45 tests). Verified with `npm run lint`,
+`npm test`, `npm run build`, and in Chrome against the running backend (apply filters, page 2, search with results and
+with none, palette with keyboard, popup content and closing). Not checked: the error and retry states, the mobile
+layout, and touch behaviour (the browser window of the session could not be resized). A search ignores the type filter
+(the API says so) although the chip stays visible. Next: slice 2c (movie detail page with episodes), then slice 3
+(login and profile), slice 4 (player), slice 5 (Xem chung mock).
 
 WebSocket `AUTH` and token renewal belong to the WebSocket milestone.
 

@@ -31,6 +31,14 @@ const paths = {
       <path d="M12 10v4m0 3v.5" />
     </>
   ),
+  grid: (
+    <>
+      <rect x="4" y="4" width="6" height="6" rx="1" />
+      <rect x="14" y="4" width="6" height="6" rx="1" />
+      <rect x="4" y="14" width="6" height="6" rx="1" />
+      <rect x="14" y="14" width="6" height="6" rx="1" />
+    </>
+  ),
   chevronDown: <path d="m6 9 6 6 6-6" />,
   close: <path d="m6 6 12 12M6 18 18 6" />,
   menu: <path d="M4 6h16M4 12h16M4 18h16" />,

@@ -1,4 +1,5 @@
 import { apiGet } from '../../shared/lib/api'
+import { memoAsync } from '../../shared/lib/memoAsync'
 import type { BrowseFilters } from './browseFilters'
 import type { Home, MovieDetail, MoviePage } from './types'
 
@@ -17,3 +18,12 @@ export const getMovie = (providerKey: string, movieId: string, signal?: AbortSig
     {},
     signal,
   )
+
+// Detail of a movie remembered for this visit: the hover preview asks for it on every hover.
+const detailOf = memoAsync((id: string) => {
+  const [providerKey, movieId] = JSON.parse(id) as [string, string]
+  return getMovie(providerKey, movieId)
+})
+
+export const getMovieCached = (providerKey: string, movieId: string) =>
+  detailOf(JSON.stringify([providerKey, movieId]))

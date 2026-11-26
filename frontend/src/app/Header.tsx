@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import {
   browseHref,
   GENRES,
   MENU_COUNTRIES,
+  SearchPalette,
   type FilterOption,
 } from '../features/catalog'
 import { useTheme } from '../shared/lib/theme'
@@ -33,7 +34,6 @@ const MENU_KEYS = Object.keys(MENUS) as MenuKey[]
 
 export function Header() {
   const location = useLocation()
-  const navigate = useNavigate()
   const params = new URLSearchParams(location.search)
   const active = activeNav(location.pathname, params)
   const currentSlug: Record<MenuKey, string | null> = {
@@ -46,6 +46,7 @@ export function Header() {
 
   const [menu, setMenu] = useState<MenuKey | null>(null)
   const [drawer, setDrawer] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
   const [section, setSection] = useState<MenuKey | null>(null)
   const closeTimer = useRef(0)
   const navRef = useRef<HTMLElement>(null)
@@ -54,9 +55,18 @@ export function Header() {
     setMenu(null)
     setDrawer(false)
   }
+  const openSearch = () => {
+    closeAll()
+    setSearchOpen(true)
+  }
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault()
+        setSearchOpen(true)
+        return
+      }
       if (event.key !== 'Escape') return
       if (menu) navRef.current?.querySelector<HTMLElement>(`[data-menu="${menu}"]`)?.focus()
       closeAll()
@@ -151,12 +161,12 @@ export function Header() {
         </nav>
 
         <div className="header-tools">
-          {/* Search palette arrives with the catalog screens; for now it opens the browse page. */}
           <button
             className="tool-btn"
-            aria-label="Tìm kiếm"
-            data-tip="Tìm kiếm"
-            onClick={() => navigate(browseHref())}
+            aria-label="Tìm kiếm (Cmd hoặc Ctrl + K)"
+            data-tip="Tìm kiếm  ⌘K"
+            aria-haspopup="dialog"
+            onClick={openSearch}
           >
             <Icon name="search" size={17} />
           </button>
@@ -197,6 +207,10 @@ export function Header() {
             <Icon name="close" size={22} />
           </button>
         </div>
+        <button className="drawer-search" onClick={openSearch}>
+          <Icon name="search" size={17} />
+          <span>Tìm phim bạn muốn xem...</span>
+        </button>
         <div className="drawer-links">
           {LINKS.map(({ key, label, to }) => (
             <Link key={key} to={to} className={active === key ? 'active' : ''} onClick={closeAll}>
@@ -245,6 +259,7 @@ export function Header() {
           <button className="btn primary">Đăng ký</button>
         </div>
       </aside>
+      {searchOpen && <SearchPalette onClose={() => setSearchOpen(false)} />}
     </header>
   )
 }

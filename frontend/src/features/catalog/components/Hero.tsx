@@ -4,7 +4,7 @@ import { useAsync } from '../../../shared/lib/useAsync'
 import { Icon } from '../../../shared/ui/Icon'
 import { useSoon } from '../../../shared/ui/soonContext'
 import { SoonTag } from '../../../shared/ui/SoonTag'
-import { getMovie } from '../api'
+import { getMovieCached } from '../api'
 import { moviePath, typeLabel, watchPath } from '../moviePaths'
 import type { MovieSummary } from '../types'
 
@@ -14,7 +14,7 @@ export function Hero({ featured }: { featured: MovieSummary[] }) {
   const [index, setIndex] = useState(0)
   const openSoon = useSoon()
   const movie = featured[index]
-  const detail = useAsync((signal) => getMovie(movie.providerKey, movie.movieId, signal), `hero:${movie.providerKey}/${movie.movieId}`)
+  const detail = useAsync(() => getMovieCached(movie.providerKey, movie.movieId), `hero:${movie.providerKey}/${movie.movieId}`)
   const genres = movie.genres ?? []
   const synopsis = detail.status === 'ready' ? detail.data.synopsis : null
   // The poster is portrait and looks bad stretched, so it is only a fallback when there is no landscape image.

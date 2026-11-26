@@ -726,3 +726,17 @@
     font-size: 8px;
   }
 }
+
+.drawer-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  border: 1.5px solid var(--border);
+  color: var(--text-muted);
+  font-size: 12px;
+  text-align: left;
+}
