@@ -1,0 +1,113 @@
+.party-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+  align-items: center;
+  gap: 28px;
+  margin-top: 28px;
+  padding: 26px 30px;
+  background: var(--area-lavender);
+  border: 1.5px solid var(--border);
+  border-radius: 26px;
+  color: var(--area-text);
+}
+
+:root[data-theme='dark'] .party-strip {
+  background: var(--surface-soft);
+  --area-text: var(--text);
+  --area-text-muted: var(--text-muted);
+}
+
+.party-strip-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--area-text-muted);
+}
+
+.party-strip h2 {
+  margin-top: 8px;
+  font-size: 26px;
+  letter-spacing: -0.3px;
+}
+
+.party-strip p {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--area-text-muted);
+}
+
+.party-strip-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.party-action {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  text-align: left;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 22px;
+  color: var(--text);
+}
+
+.party-action:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.party-action > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+
+.party-action strong,
+.party-action small {
+  display: block;
+}
+
+.party-action strong {
+  font-size: 13px;
+}
+
+.party-action small {
+  margin-top: 3px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.party-action > svg {
+  color: var(--primary-strong);
+  flex-shrink: 0;
+}
+
+.party-action-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: var(--primary-soft);
+  color: var(--primary-strong);
+}
+
+@media (max-width: 900px) {
+  .party-strip {
+    grid-template-columns: 1fr;
+    padding: 22px 20px;
+  }
+}
+
+@media (max-width: 680px) {
+  .party-strip-actions {
+    grid-template-columns: 1fr;
+  }
+}

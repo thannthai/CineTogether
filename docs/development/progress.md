@@ -204,7 +204,22 @@ Vitest was added for pure logic (filter-to-URL helpers and the highlighted menu 
 until the backend can list them (KKPhim has the lists `phim-chieu-rap`, `hoat-hinh`, `tv-shows`, but `GET /movies`
 only maps new, single and series; Anime is the `hoat-hinh` list, not a genre); genre and country menus use the real
 KKPhim names and slugs (no "Mỹ", it is "Âu Mỹ"). Placeholders remain for every page, the search button only opens
-`/movies`, and Đăng nhập / Đăng ký do nothing yet. Next: slice 2, the catalog screens wired to the real API.
+`/movies`, and Đăng nhập / Đăng ký do nothing yet. Frontend slice 2a (home page) is done: `shared/lib` has the API client (`apiGet`, problem+json errors mapped to Vietnamese
+messages, `useAsync`), `features/catalog` has the types, API calls and the home screen (hero from `featured` with the
+selected movie's detail loaded for the synopsis and the poster as a blurred backdrop, interest cards linking to genre
+and country filters, one row for the home response and independent rows for single movies, series and the family
+genre), and `features/party` has the Watch Together strip; every room action opens the shared "coming soon" dialog.
+`config/env.ts` now reads the `VITE_*` values lazily (`checkEnv()` still fails fast at startup) so unit tests can import
+modules that use it. Verified with `npm run lint`, `npm test` (24 tests), `npm run build`, and in Chrome against the
+running backend (real posters and synopsis, thumbnail switching, dialog, dark theme, card to detail route). Not checked:
+the error and retry states of the rows (no provider failure was provoked). Not in the design because the API has no
+data for it: "Đang thịnh hành", ratings, quality badges. Hero background: the movie detail now carries `backdropUrl` (KKPhim's landscape `thumb_url`, 780x439; the portrait poster
+is only 344x484 and looked bad stretched). Added to `MovieDetail`, the KKPhim mapping and `api.md` §2.2 (list items still
+carry only `posterUrl`); `./gradlew test` passes (162 tests). The hero shows the image full width with the five thumbnails
+at the bottom right and falls back to the poster when a movie has no landscape image. Verified in Chrome against the
+running backend. The image is upscaled about 2x on wide screens, so it is soft rather than razor sharp.
+Next: slice 2b (browse page with filter panel, grid and
+numbered pagination, search palette, hover preview), then 2c (detail page).
 
 WebSocket `AUTH` and token renewal belong to the WebSocket milestone.
 

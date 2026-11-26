@@ -10,6 +10,27 @@ const paths = {
   ),
   arrow: <path d="M4 12h16m-6-6 6 6-6 6" />,
   chevron: <path d="m9 5 7 7-7 7" />,
+  chevronLeft: <path d="m15 5-7 7 7 7" />,
+  plus: <path d="M12 5v14M5 12h14" />,
+  link: (
+    <path
+      d="m10 13 4-4m-6 6-2 2a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0m4 2 2-2a4 4 0 0 1 6 6l-4 4a4 4 0 0 1-6 0"
+      transform="translate(1 0)"
+    />
+  ),
+  people: (
+    <>
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-3.87M15 3.13a4 4 0 0 1 0 7.75" />
+      <circle cx="9" cy="7" r="4" />
+    </>
+  ),
+  refresh: <path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7" />,
+  alert: (
+    <>
+      <path d="M12 3 2 20h20L12 3Z" />
+      <path d="M12 10v4m0 3v.5" />
+    </>
+  ),
   chevronDown: <path d="m6 9 6 6 6-6" />,
   close: <path d="m6 6 12 12M6 18 18 6" />,
   menu: <path d="M4 6h16M4 12h16M4 18h16" />,

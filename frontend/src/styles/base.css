@@ -209,3 +209,52 @@ input::placeholder {
     width: calc(100% - 36px);
   }
 }
+
+/* Larger and translucent button variants (used over images and on hero banners) */
+.btn.large {
+  min-height: 48px;
+  padding-inline: 26px;
+  font-size: 13px;
+}
+
+.btn.glass {
+  background: color-mix(in srgb, var(--on-image) 16%, transparent);
+  border-color: color-mix(in srgb, var(--on-image) 60%, transparent);
+  color: var(--on-image);
+  backdrop-filter: blur(12px);
+}
+
+.btn.glass:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--on-image) 26%, transparent);
+  border-color: var(--on-image);
+  transform: translateY(-2px);
+}
+
+.circle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+.circle-btn:hover:not(:disabled) {
+  color: var(--primary-strong);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.circle-btn.glass {
+  width: 48px;
+  height: 48px;
+  background: color-mix(in srgb, var(--on-image) 16%, transparent);
+  border-color: color-mix(in srgb, var(--on-image) 60%, transparent);
+  color: var(--on-image);
+  backdrop-filter: blur(12px);
+}
