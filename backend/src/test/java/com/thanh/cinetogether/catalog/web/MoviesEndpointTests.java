@@ -3,6 +3,7 @@ package com.thanh.cinetogether.catalog.web;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -30,6 +31,7 @@ import com.thanh.cinetogether.TestcontainersConfiguration;
 import com.thanh.cinetogether.catalog.domain.MovieProvider;
 import com.thanh.cinetogether.catalog.domain.ProviderUnavailableException;
 import com.thanh.cinetogether.catalog.domain.browse.BrowseQuery;
+import com.thanh.cinetogether.catalog.domain.browse.CountryFilter;
 import com.thanh.cinetogether.catalog.domain.browse.Paging;
 import com.thanh.cinetogether.catalog.domain.movie.MoviePage;
 import com.thanh.cinetogether.catalog.domain.movie.MovieSummary;
@@ -75,7 +77,19 @@ class MoviesEndpointTests {
         mockMvc.perform(get("/api/v1/movies?q=love&type=MOVIE&genre=action&country=korea&page=2&size=10"))
                 .andExpect(status().isOk());
 
-        verify(movieProvider).browse(new BrowseQuery("love", MovieType.MOVIE, "action", "korea", Paging.of(2, 10)));
+        verify(movieProvider).browse(new BrowseQuery("love", MovieType.MOVIE, "action",
+                CountryFilter.of(List.of("korea")), Paging.of(2, 10)));
+    }
+
+    @Test
+    void severalCountriesCanBeGivenWithCommasOrRepeatedParameters() throws Exception {
+        given(movieProvider.browse(any())).willReturn(new MoviePage(List.of(), 0, 20, false));
+
+        mockMvc.perform(get("/api/v1/movies?country=korea,japan")).andExpect(status().isOk());
+        mockMvc.perform(get("/api/v1/movies?country=korea&country=japan")).andExpect(status().isOk());
+
+        verify(movieProvider, times(2)).browse(
+                new BrowseQuery(null, null, null, CountryFilter.of(List.of("korea", "japan")), Paging.of(0, 20)));
     }
 
     @Test
@@ -88,7 +102,8 @@ class MoviesEndpointTests {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"size=51", "size=0", "page=-1", "type=BOOK"})
+    @ValueSource(strings = {"size=51", "size=0", "page=-1", "type=BOOK", "country=a,b,c,d,e,f",
+            "country=Han%20Quoc", "country=a--b"})
     void aBadParameterIsRejectedWithValidationError(String parameter) throws Exception {
         mockMvc.perform(get("/api/v1/movies?" + parameter))
                 .andExpect(status().isBadRequest())

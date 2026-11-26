@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.thanh.cinetogether.catalog.domain.MovieNotFoundException;
 import com.thanh.cinetogether.catalog.domain.ProviderUnavailableException;
+import com.thanh.cinetogether.catalog.domain.browse.InvalidFilterException;
 import com.thanh.cinetogether.catalog.domain.browse.InvalidPagingException;
 
 @RestControllerAdvice
@@ -18,8 +19,8 @@ class CatalogExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(CatalogExceptionHandler.class);
 
-    @ExceptionHandler(InvalidPagingException.class)
-    ProblemDetail invalidPaging(InvalidPagingException exception) {
+    @ExceptionHandler({ InvalidPagingException.class, InvalidFilterException.class })
+    ProblemDetail invalidInput(RuntimeException exception) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
         problem.setType(URI.create("about:blank"));
         problem.setProperty("code", "VALIDATION_ERROR");

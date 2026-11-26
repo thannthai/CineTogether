@@ -163,9 +163,9 @@ public class KKPhimProvider implements MovieProvider {
             uriBuilder.queryParam("category", "{category}");
             variables.put("category", query.genre());
         }
-        if (query.country() != null) {
+        if (!query.countries().slugs().isEmpty()) {
             uriBuilder.queryParam("country", "{country}");
-            variables.put("country", query.country());
+            variables.put("country", String.join(",", query.countries().slugs()));
         }
         return uriBuilder.build(variables);
     }

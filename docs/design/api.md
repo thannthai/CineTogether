@@ -183,9 +183,15 @@ token, before the body is read.
 | `q`       | String  | Search keyword             |
 | `type`    | Enum    | `MOVIE` or `SERIES`        |
 | `genre`   | String  | Genre filter               |
-| `country` | String  | Country filter             |
+| `country` | String  | Country filter, one or more slugs (see below) |
 | `page`    | Integer | Default `0`                |
 | `size`    | Integer | Default `20`, maximum `50` |
+
+`country` takes up to 5 country slugs, either comma-separated (`country=han-quoc,trung-quoc`) or repeated. A movie
+matches when it belongs to any of them (OR). Repeated values are ignored and do not count towards the limit. A slug must
+be lowercase letters and digits separated by single hyphens; more than 5 slugs or an invalid slug is rejected with `400`
+(`VALIDATION_ERROR`). `genre` stays a single value: the provider cannot match several genres at once (it treats them as
+OR), so an AND filter would need many provider requests per page.
 
 `page` starts at `0`. A negative `page`, or a `size` below `1` or above `50`, is rejected with `400`
 (`VALIDATION_ERROR`) instead of being adjusted silently.

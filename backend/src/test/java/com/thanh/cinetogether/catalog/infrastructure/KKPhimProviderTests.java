@@ -28,6 +28,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import com.thanh.cinetogether.catalog.domain.ProviderUnavailableException;
 import com.thanh.cinetogether.catalog.domain.browse.BrowseQuery;
+import com.thanh.cinetogether.catalog.domain.browse.CountryFilter;
 import com.thanh.cinetogether.catalog.domain.movie.Episode;
 import com.thanh.cinetogether.catalog.domain.movie.EpisodeProgress;
 import com.thanh.cinetogether.catalog.domain.movie.MovieDetail;
@@ -112,9 +113,29 @@ class KKPhimProviderTests {
     void genreAndCountryAreSentAsProviderFilters() {
         server.respond(LIST_PATH, LIST_PAGE_ONE_OF_THREE);
 
-        provider.browse(new BrowseQuery(null, null, "action", "korea", Paging.of(0, 20)));
+        provider.browse(new BrowseQuery(null, null, "action", CountryFilter.of(List.of("korea")),
+                Paging.of(0, 20)));
 
         assertThat(lastQuery()).containsEntry("category", "action").containsEntry("country", "korea");
+    }
+
+    @Test
+    void severalCountriesAreSentAsOneCommaSeparatedFilter() {
+        server.respond(LIST_PATH, LIST_PAGE_ONE_OF_THREE);
+
+        provider.browse(new BrowseQuery(null, null, null, CountryFilter.of(List.of("korea", "japan")),
+                Paging.of(0, 20)));
+
+        assertThat(lastQuery()).containsEntry("country", "korea,japan");
+    }
+
+    @Test
+    void noCountryMeansNoCountryParameter() {
+        server.respond(LIST_PATH, LIST_PAGE_ONE_OF_THREE);
+
+        provider.browse(FIRST_PAGE);
+
+        assertThat(lastQuery()).doesNotContainKey("country");
     }
 
     // The provider's search cannot filter by type, so the type is not applied when searching.
