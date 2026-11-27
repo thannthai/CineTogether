@@ -16,6 +16,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.util.UriBuilder;
 
 import com.thanh.cinetogether.catalog.domain.browse.BrowseQuery;
+import com.thanh.cinetogether.catalog.domain.browse.MovieList;
 import com.thanh.cinetogether.catalog.domain.movie.Episode;
 import com.thanh.cinetogether.catalog.domain.movie.MovieDetail;
 import com.thanh.cinetogether.catalog.domain.movie.MoviePage;
@@ -151,7 +152,7 @@ public class KKPhimProvider implements MovieProvider {
     // filter by type at all.
     private URI listUri(UriBuilder uriBuilder, BrowseQuery query, boolean searching) {
         Map<String, String> variables = new HashMap<>();
-        uriBuilder.path(searching ? "/v1/api/tim-kiem" : "/v1/api/danh-sach/" + listFor(query.type()))
+        uriBuilder.path(searching ? "/v1/api/tim-kiem" : "/v1/api/danh-sach/" + listFor(query))
                 .queryParam("page", KKPhimMapping.providerPage(query.paging()))
                 .queryParam("limit", query.paging().size());
         // Values come from the user, so they go in as URI variables to be encoded.
@@ -163,6 +164,10 @@ public class KKPhimProvider implements MovieProvider {
             uriBuilder.queryParam("category", "{category}");
             variables.put("category", query.genre());
         }
+        if (query.year() != null) {
+            uriBuilder.queryParam("year", "{year}");
+            variables.put("year", String.valueOf(query.year()));
+        }
         if (!query.countries().slugs().isEmpty()) {
             uriBuilder.queryParam("country", "{country}");
             variables.put("country", String.join(",", query.countries().slugs()));
@@ -170,11 +175,17 @@ public class KKPhimProvider implements MovieProvider {
         return uriBuilder.build(variables);
     }
 
-    private static String listFor(MovieType type) {
-        if (type == MovieType.MOVIE) {
+    private static String listFor(BrowseQuery query) {
+        if (query.list() == MovieList.CINEMA) {
+            return "phim-chieu-rap";
+        }
+        if (query.list() == MovieList.ANIME) {
+            return "hoat-hinh";
+        }
+        if (query.type() == MovieType.MOVIE) {
             return "phim-le";
         }
-        return type == MovieType.SERIES ? "phim-bo" : "phim-moi-cap-nhat";
+        return query.type() == MovieType.SERIES ? "phim-bo" : "phim-moi-cap-nhat";
     }
 
 }

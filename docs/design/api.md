@@ -184,6 +184,8 @@ token, before the body is read.
 | `type`    | Enum    | `MOVIE` or `SERIES`        |
 | `genre`   | String  | Genre filter               |
 | `country` | String  | Country filter, one or more slugs (see below) |
+| `list`    | Enum    | `CINEMA` (cinema releases) or `ANIME` (the provider's animation list) |
+| `year`    | Integer | Release year, from `1900` to `2100` |
 | `page`    | Integer | Default `0`                |
 | `size`    | Integer | Default `20`, maximum `50` |
 
@@ -192,6 +194,14 @@ matches when it belongs to any of them (OR). Repeated values are ignored and do 
 be lowercase letters and digits separated by single hyphens; more than 5 slugs or an invalid slug is rejected with `400`
 (`VALIDATION_ERROR`). `genre` stays a single value: the provider cannot match several genres at once (it treats them as
 OR), so an AND filter would need many provider requests per page.
+
+`list` reads one of the provider's own lists: `CINEMA` for cinema releases, `ANIME` for animation (mostly Japanese and
+Chinese; add `country=nhat-ban` for Japanese anime). It replaces the list chosen by `type` when both are present, `genre`
+and `country` still apply, and, like `type`, it is ignored when `q` is present. Any other value is rejected with `400`
+(`VALIDATION_ERROR`).
+
+`year` keeps only the movies released that year. It applies to every list and, like `genre` and `country`, to search. A
+value that is not a number or is outside `1900` to `2100` is rejected with `400` (`VALIDATION_ERROR`).
 
 `page` starts at `0`. A negative `page`, or a `size` below `1` or above `50`, is rejected with `400`
 (`VALIDATION_ERROR`) instead of being adjusted silently.
@@ -246,11 +256,17 @@ Only collections supported by the provider or curated data are returned.
 The provider has no "featured" list, so the home page is derived from one provider call (the first page of the newest
 updates): `new-updates` holds the whole page in the provider's order, and `featured` is 5 movies of it, taken from those
 released this year or later (single films, series and cinema releases alike) and ranked by the provider's view count,
-most viewed first. A movie from an earlier year is never featured, however much it is viewed, so fewer than 5 (or none)
-can be returned. The list has no view counts, so the backend reads them from the detail of the first 12 movies of this
-year in parallel (at most about 4 seconds); a movie whose detail fails or is late ranks after the known ones, in the
-provider's order. The provider orders `new-updates` by last update, so an old series with a new episode can be first
+most viewed first. Only when fewer than 5 exist, for example early in a new year, do movies of the previous year fill the
+missing places (also most viewed first, after this year's). Movies from older years are never featured however much they
+are viewed, so fewer than 5 (or none) can still be returned. The list has no view counts, so the backend reads them from
+the detail of the first 12 movies of this year (and of last year when this year has too few) in parallel (at most about 4
+seconds); a movie whose detail fails or is late ranks after the known ones, in the provider's order. The provider orders `new-updates` by last update, so an old series with a new episode can be first
 there. An unavailable provider is `503`.
+
+A second section, `cinema` ("Phim chiếu rạp"), follows `new-updates`: up to 14 cinema films of this year or later, most
+viewed first (last year's fill the missing places, as for `featured`), taken from the first 50 films of the provider's cinema list and ranked like `featured` (the details of the
+first 12 of them are read in the same parallel batch, so the 4 second limit is shared). The section is left out when the
+cinema list is unavailable or has no film of this year; that never makes the home page fail.
 
 **Movie detail response:**
 

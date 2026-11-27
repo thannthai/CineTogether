@@ -27,6 +27,7 @@ import com.thanh.cinetogether.TestcontainersConfiguration;
 import com.thanh.cinetogether.catalog.domain.MovieProvider;
 import com.thanh.cinetogether.catalog.domain.ProviderUnavailableException;
 import com.thanh.cinetogether.catalog.domain.browse.BrowseQuery;
+import com.thanh.cinetogether.catalog.domain.browse.MovieList;
 import com.thanh.cinetogether.catalog.domain.browse.Paging;
 import com.thanh.cinetogether.catalog.domain.movie.EpisodeProgress;
 import com.thanh.cinetogether.catalog.domain.movie.MovieDetail;
@@ -82,6 +83,71 @@ class HomeEndpointTests {
                 .andExpect(jsonPath("$.sections[0].items[0].movieId").value("old-hit"));
     }
 
+    private static final BrowseQuery NEW_UPDATES = new BrowseQuery(null, null, null, null, Paging.of(0, 20));
+    private static final BrowseQuery CINEMA = new BrowseQuery(null, null, null, null, MovieList.CINEMA,
+            Paging.of(0, 50));
+
+    private static MovieSummary cinemaFilm(String movieId, int year) {
+        return new MovieSummary("kkphim", movieId, movieId, MovieType.MOVIE, null, year, List.of());
+    }
+
+    @Test
+    void theCinemaSectionHoldsThisYearsMostViewedCinemaFilms() throws Exception {
+        given(movieProvider.browse(NEW_UPDATES)).willReturn(pageOf(0));
+        given(movieProvider.browse(CINEMA)).willReturn(new MoviePage(List.of(cinemaFilm("old", THIS_YEAR - 2),
+                cinemaFilm("c-1", THIS_YEAR), cinemaFilm("c-2", THIS_YEAR), cinemaFilm("c-3", THIS_YEAR)), 0, 50,
+                false));
+        given(movieProvider.detail("c-1")).willReturn(Optional.of(detailWithViews("c-1", 10)));
+        given(movieProvider.detail("c-2")).willReturn(Optional.of(detailWithViews("c-2", 900)));
+
+        mockMvc.perform(get("/api/v1/catalog/home"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sections[1].key").value("cinema"))
+                .andExpect(jsonPath("$.sections[1].title").value("Phim chiếu rạp"))
+                .andExpect(jsonPath("$.sections[1].items.length()").value(3))
+                .andExpect(jsonPath("$.sections[1].items[0].movieId").value("c-2"))
+                .andExpect(jsonPath("$.sections[1].items[1].movieId").value("c-1"))
+                .andExpect(jsonPath("$.sections[1].items[2].movieId").value("c-3"));
+    }
+
+    @Test
+    void lastYearsCinemaFilmsFillTheSectionWhenThisYearHasTooFew() throws Exception {
+        given(movieProvider.browse(NEW_UPDATES)).willReturn(pageOf(0));
+        given(movieProvider.browse(CINEMA)).willReturn(new MoviePage(List.of(cinemaFilm("last-1", THIS_YEAR - 1),
+                cinemaFilm("new", THIS_YEAR), cinemaFilm("last-2", THIS_YEAR - 1), cinemaFilm("old", THIS_YEAR - 2)),
+                0, 50, false));
+        given(movieProvider.detail("last-2")).willReturn(Optional.of(detailWithViews("last-2", 700)));
+
+        mockMvc.perform(get("/api/v1/catalog/home"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sections[1].items.length()").value(3))
+                .andExpect(jsonPath("$.sections[1].items[0].movieId").value("new"))
+                .andExpect(jsonPath("$.sections[1].items[1].movieId").value("last-2"))
+                .andExpect(jsonPath("$.sections[1].items[2].movieId").value("last-1"));
+    }
+
+    @Test
+    void aFailingCinemaListDoesNotBreakTheHomePage() throws Exception {
+        given(movieProvider.browse(NEW_UPDATES)).willReturn(pageOf(2));
+        given(movieProvider.browse(CINEMA)).willThrow(new ProviderUnavailableException("down"));
+
+        mockMvc.perform(get("/api/v1/catalog/home"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sections.length()").value(1))
+                .andExpect(jsonPath("$.sections[0].key").value("new-updates"));
+    }
+
+    @Test
+    void withoutCinemaFilmsOfThisYearTheCinemaSectionIsLeftOut() throws Exception {
+        given(movieProvider.browse(NEW_UPDATES)).willReturn(pageOf(2));
+        given(movieProvider.browse(CINEMA)).willReturn(new MoviePage(List.of(cinemaFilm("old", THIS_YEAR - 2)), 0, 50,
+                false));
+
+        mockMvc.perform(get("/api/v1/catalog/home"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sections.length()").value(1));
+    }
+
     @Test
     void aFailingDetailDoesNotBreakTheHomePage() throws Exception {
         given(movieProvider.browse(any())).willReturn(pageOf(3));
@@ -108,7 +174,8 @@ class HomeEndpointTests {
 
     @Test
     void homeIsPublicAndFeaturesFiveOfTheNewUpdatesInTheirOrderWhenViewsAreUnknown() throws Exception {
-        given(movieProvider.browse(any())).willReturn(pageOf(7));
+        given(movieProvider.browse(NEW_UPDATES)).willReturn(pageOf(7));
+        given(movieProvider.browse(CINEMA)).willReturn(pageOf(0));
 
         mockMvc.perform(get("/api/v1/catalog/home"))
                 .andExpect(status().isOk())

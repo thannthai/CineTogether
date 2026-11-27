@@ -50,6 +50,28 @@ class FeaturedTests {
     }
 
     @Test
+    void lastYearFillsTheMissingPlacesAfterThisYearsMovies() {
+        List<MovieSummary> updates = List.of(movie("last-a", 2025), movie("new", 2026), movie("last-b", 2025));
+
+        assertThat(ids(Featured.pick(updates, Map.of("new", 1, "last-a", 100, "last-b", 900), 2026, 3)))
+                .containsExactly("new", "last-b", "last-a");
+    }
+
+    @Test
+    void lastYearIsNotUsedWhenThisYearAlreadyFillsEveryPlace() {
+        List<MovieSummary> updates = List.of(movie("last", 2025), movie("a", 2026), movie("b", 2026));
+
+        assertThat(ids(Featured.pick(updates, Map.of("last", 1_000_000), 2026, 2))).containsExactly("a", "b");
+    }
+
+    @Test
+    void onlyThePreviousYearCanFillNotOlderOnes() {
+        List<MovieSummary> updates = List.of(movie("two-years", 2024), movie("last", 2025));
+
+        assertThat(ids(Featured.pick(updates, Map.of(), 2026, 5))).containsExactly("last");
+    }
+
+    @Test
     void keepsAtMostTheRequestedNumber() {
         List<MovieSummary> updates = List.of(movie("a", 2026), movie("b", 2026), movie("c", 2026));
 

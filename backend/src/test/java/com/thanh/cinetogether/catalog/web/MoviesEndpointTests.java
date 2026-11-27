@@ -32,6 +32,7 @@ import com.thanh.cinetogether.catalog.domain.MovieProvider;
 import com.thanh.cinetogether.catalog.domain.ProviderUnavailableException;
 import com.thanh.cinetogether.catalog.domain.browse.BrowseQuery;
 import com.thanh.cinetogether.catalog.domain.browse.CountryFilter;
+import com.thanh.cinetogether.catalog.domain.browse.MovieList;
 import com.thanh.cinetogether.catalog.domain.browse.Paging;
 import com.thanh.cinetogether.catalog.domain.movie.MoviePage;
 import com.thanh.cinetogether.catalog.domain.movie.MovieSummary;
@@ -93,6 +94,34 @@ class MoviesEndpointTests {
     }
 
     @Test
+    void theCinemaListReachesTheProvider() throws Exception {
+        given(movieProvider.browse(any())).willReturn(new MoviePage(List.of(), 0, 20, false));
+
+        mockMvc.perform(get("/api/v1/movies?list=CINEMA")).andExpect(status().isOk());
+
+        verify(movieProvider).browse(new BrowseQuery(null, null, null, null, MovieList.CINEMA, Paging.of(0, 20)));
+    }
+
+    @Test
+    void theAnimeListReachesTheProvider() throws Exception {
+        given(movieProvider.browse(any())).willReturn(new MoviePage(List.of(), 0, 20, false));
+
+        mockMvc.perform(get("/api/v1/movies?list=ANIME&country=nhat-ban")).andExpect(status().isOk());
+
+        verify(movieProvider).browse(new BrowseQuery(null, null, null, CountryFilter.of(List.of("nhat-ban")),
+                MovieList.ANIME, Paging.of(0, 20)));
+    }
+
+    @Test
+    void theYearReachesTheProvider() throws Exception {
+        given(movieProvider.browse(any())).willReturn(new MoviePage(List.of(), 0, 20, false));
+
+        mockMvc.perform(get("/api/v1/movies?genre=gia-dinh&year=2026")).andExpect(status().isOk());
+
+        verify(movieProvider).browse(new BrowseQuery(null, null, "gia-dinh", null, null, 2026, Paging.of(0, 20)));
+    }
+
+    @Test
     void missingParametersUseTheDefaults() throws Exception {
         given(movieProvider.browse(any())).willReturn(new MoviePage(List.of(), 0, 20, false));
 
@@ -103,7 +132,7 @@ class MoviesEndpointTests {
 
     @ParameterizedTest
     @ValueSource(strings = {"size=51", "size=0", "page=-1", "type=BOOK", "country=a,b,c,d,e,f",
-            "country=Han%20Quoc", "country=a--b"})
+            "country=Han%20Quoc", "country=a--b", "list=TV_SHOWS", "year=abc", "year=1899", "year=2101"})
     void aBadParameterIsRejectedWithValidationError(String parameter) throws Exception {
         mockMvc.perform(get("/api/v1/movies?" + parameter))
                 .andExpect(status().isBadRequest())

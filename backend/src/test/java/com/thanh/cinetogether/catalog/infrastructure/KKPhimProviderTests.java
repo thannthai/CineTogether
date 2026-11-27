@@ -29,6 +29,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import com.thanh.cinetogether.catalog.domain.ProviderUnavailableException;
 import com.thanh.cinetogether.catalog.domain.browse.BrowseQuery;
 import com.thanh.cinetogether.catalog.domain.browse.CountryFilter;
+import com.thanh.cinetogether.catalog.domain.browse.MovieList;
 import com.thanh.cinetogether.catalog.domain.movie.Episode;
 import com.thanh.cinetogether.catalog.domain.movie.EpisodeProgress;
 import com.thanh.cinetogether.catalog.domain.movie.MovieDetail;
@@ -107,6 +108,53 @@ class KKPhimProviderTests {
 
         assertThat(server.requests()).extracting(URI::getPath)
                 .containsExactly("/v1/api/danh-sach/phim-le", "/v1/api/danh-sach/phim-bo");
+    }
+
+    @Test
+    void theCinemaListReadsTheProvidersCinemaList() {
+        server.respond("/v1/api/danh-sach/phim-chieu-rap", LIST_PAGE_ONE_OF_THREE);
+
+        provider.browse(new BrowseQuery(null, null, null, null, MovieList.CINEMA, Paging.of(0, 20)));
+
+        assertThat(server.requests()).extracting(URI::getPath).containsExactly("/v1/api/danh-sach/phim-chieu-rap");
+    }
+
+    @Test
+    void theAnimeListReadsTheProvidersAnimationList() {
+        server.respond("/v1/api/danh-sach/hoat-hinh", LIST_PAGE_ONE_OF_THREE);
+
+        provider.browse(new BrowseQuery(null, null, null, null, MovieList.ANIME, Paging.of(0, 20)));
+
+        assertThat(server.requests()).extracting(URI::getPath).containsExactly("/v1/api/danh-sach/hoat-hinh");
+    }
+
+    @Test
+    void theYearIsSentAsAProviderFilterOnlyWhenGiven() {
+        server.respond(LIST_PATH, LIST_PAGE_ONE_OF_THREE);
+
+        provider.browse(new BrowseQuery(null, null, "family", null, null, 2026, Paging.of(0, 20)));
+        assertThat(lastQuery()).containsEntry("year", "2026").containsEntry("category", "family");
+
+        provider.browse(FIRST_PAGE);
+        assertThat(lastQuery()).doesNotContainKey("year");
+    }
+
+    @Test
+    void theCinemaListWinsOverTheType() {
+        server.respond("/v1/api/danh-sach/phim-chieu-rap", LIST_PAGE_ONE_OF_THREE);
+
+        provider.browse(new BrowseQuery(null, MovieType.SERIES, null, null, MovieList.CINEMA, Paging.of(0, 20)));
+
+        assertThat(server.requests()).extracting(URI::getPath).containsExactly("/v1/api/danh-sach/phim-chieu-rap");
+    }
+
+    @Test
+    void aSearchIgnoresTheList() {
+        server.respond(SEARCH_PATH, LIST_PAGE_ONE_OF_THREE);
+
+        provider.browse(new BrowseQuery("love", null, null, null, MovieList.CINEMA, Paging.of(0, 20)));
+
+        assertThat(server.requests()).extracting(URI::getPath).containsExactly(SEARCH_PATH);
     }
 
     @Test

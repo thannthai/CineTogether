@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.thanh.cinetogether.catalog.application.Catalog;
 import com.thanh.cinetogether.catalog.domain.browse.BrowseQuery;
 import com.thanh.cinetogether.catalog.domain.browse.CountryFilter;
+import com.thanh.cinetogether.catalog.domain.browse.MovieList;
 import com.thanh.cinetogether.catalog.domain.browse.Paging;
 import com.thanh.cinetogether.catalog.domain.movie.MovieDetail;
 import com.thanh.cinetogether.catalog.domain.movie.MoviePage;
@@ -30,8 +31,10 @@ class MoviesController {
     @GetMapping
     MoviePage browse(@RequestParam(required = false) String q, @RequestParam(required = false) MovieType type,
             @RequestParam(required = false) String genre, @RequestParam(required = false) List<String> country,
+            @RequestParam(required = false) MovieList list, @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer page, @RequestParam(required = false) Integer size) {
-        return catalog.browse(new BrowseQuery(q, type, genre, CountryFilter.of(country), Paging.of(page, size)));
+        return catalog.browse(new BrowseQuery(q, type, genre, CountryFilter.of(country), list, year,
+                Paging.of(page, size)));
     }
 
     @GetMapping("/{providerKey}/{movieId}")
