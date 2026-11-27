@@ -24,7 +24,11 @@ final class KKPhimResponses {
 
     record Item(String name, @JsonProperty("origin_name") String originName, String slug, String type,
             @JsonProperty("poster_url") String posterUrl, Integer year, String quality, String lang,
-            @JsonProperty("episode_current") String episodeCurrent, List<Category> category) {
+            @JsonProperty("episode_current") String episodeCurrent, List<Category> category, Rating imdb,
+            Rating tmdb) {
+    }
+
+    record Rating(@JsonProperty("vote_count") Integer voteCount) {
     }
 
     record Category(String name) {

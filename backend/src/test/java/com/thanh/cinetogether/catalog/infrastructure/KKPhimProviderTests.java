@@ -50,10 +50,13 @@ class KKPhimProviderTests {
             {"status": true, "msg": "done", "data": {
               "items": [
                 {"name": "Movie One", "slug": "movie-one", "type": "single", "poster_url": "upload/one.jpg",
-                 "year": 2024,
+                 "year": 2024, "imdb": {"id": "tt1", "vote_average": 7.1, "vote_count": 1200},
+                 "tmdb": {"id": "1", "vote_average": 7, "vote_count": 5},
                  "category": [{"name": "Action", "slug": "action"}, {"name": "Drama", "slug": "drama"}]},
                 {"name": "Cartoon Two", "slug": "cartoon-two", "type": "hoathinh",
-                 "poster_url": "https://other.example/two.jpg", "year": 2023, "category": []}
+                 "poster_url": "https://other.example/two.jpg", "year": 2023, "category": [],
+                 "imdb": {"id": null, "vote_average": 0, "vote_count": 0},
+                 "tmdb": {"id": "2", "vote_average": 8, "vote_count": 40}}
               ],
               "params": {"pagination": {"totalItems": 41, "totalItemsPerPage": 20, "currentPage": 1, "totalPages": 3}},
               "APP_DOMAIN_CDN_IMAGE": "https://img.example"}}
@@ -80,10 +83,11 @@ class KKPhimProviderTests {
         MoviePage page = provider.browse(new BrowseQuery(null, null, null, null, Paging.of(0, 20)));
 
         assertThat(page.items()).containsExactly(
-                new MovieSummary("kkphim", "movie-one", "Movie One", MovieType.MOVIE,
-                        "https://img.example/upload/one.jpg", 2024, List.of("Action", "Drama")),
-                new MovieSummary("kkphim", "cartoon-two", "Cartoon Two", MovieType.SERIES,
-                        "https://other.example/two.jpg", 2023, List.of()));
+                new MovieSummary("kkphim", "movie-one", "Movie One", null, MovieType.MOVIE,
+                        "https://img.example/upload/one.jpg", 2024, List.of("Action", "Drama"), null, null,
+                        EpisodeProgress.NONE, 1200),
+                new MovieSummary("kkphim", "cartoon-two", "Cartoon Two", null, MovieType.SERIES,
+                        "https://other.example/two.jpg", 2023, List.of(), null, null, EpisodeProgress.NONE, 40));
         assertThat(page.page()).isZero();
         assertThat(page.size()).isEqualTo(20);
         assertThat(page.hasNext()).isTrue();
@@ -126,6 +130,17 @@ class KKPhimProviderTests {
         provider.browse(new BrowseQuery(null, null, null, null, MovieList.ANIME, Paging.of(0, 20)));
 
         assertThat(server.requests()).extracting(URI::getPath).containsExactly("/v1/api/danh-sach/hoat-hinh");
+    }
+
+    @Test
+    void theRatingCountComesFromTheListWithoutAnyDetailCall() {
+        server.respond(LIST_PATH, LIST_PAGE_ONE_OF_THREE);
+
+        List<MovieSummary> movies = provider.browse(FIRST_PAGE).items();
+
+        // IMDb when it has votes, else TMDb.
+        assertThat(movies).extracting(MovieSummary::ratingCount).containsExactly(1200, 40);
+        assertThat(server.requests()).hasSize(1);
     }
 
     @Test

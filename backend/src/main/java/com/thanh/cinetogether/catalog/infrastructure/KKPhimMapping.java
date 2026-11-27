@@ -120,6 +120,16 @@ final class KKPhimMapping {
 
 
     // The provider sends empty or blank text for what it does not know.
+    // How many people rated the movie: the IMDb count when it has one, else the TMDb count, else unknown.
+    static Integer ratingCount(KKPhimResponses.Rating imdb, KKPhimResponses.Rating tmdb) {
+        for (KKPhimResponses.Rating rating : new KKPhimResponses.Rating[] { imdb, tmdb }) {
+            if (rating != null && rating.voteCount() != null && rating.voteCount() > 0) {
+                return rating.voteCount();
+            }
+        }
+        return null;
+    }
+
     static String blankToNull(String text) {
         return text == null || text.isBlank() ? null : text.strip();
     }

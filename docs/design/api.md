@@ -230,7 +230,8 @@ unusable response, the API answers `503` with code `PROVIDER_UNAVAILABLE`; the d
 ```
 
 Each `MovieSummary` includes `providerKey`, `movieId`, `title`, `type`, and optional `originalTitle`, `posterUrl`,
-`releaseYear`, `genres`, `quality` (for example `FHD`), `language` (for example `Vietsub`) and `progress`. `progress` is
+`releaseYear`, `genres`, `quality` (for example `FHD`), `language` (for example `Vietsub`), `progress` and
+`ratingCount` (how many people rated it on IMDb, else TMDb: how well known it is; null when unknown). `progress` is
 `{ "current": 8, "total": 24, "completed": false }`: the latest episode, the planned number of episodes and whether the
 series is finished. `current` and `total` are null when the provider does not say (the list never has `total` for a
 series that is still airing, only the detail does), and a single-part movie is `{ "current": null, "total": null,
@@ -253,20 +254,22 @@ series that is still airing, only the detail does), and a single-part movie is `
 
 Only collections supported by the provider or curated data are returned.
 
-The provider has no "featured" list, so the home page is derived from one provider call (the first page of the newest
-updates): `new-updates` holds the whole page in the provider's order, and `featured` is 5 movies of it, taken from those
-released this year or later (single films, series and cinema releases alike) and ranked by the provider's view count,
-most viewed first. Only when fewer than 5 exist, for example early in a new year, do movies of the previous year fill the
-missing places (also most viewed first, after this year's). Movies from older years are never featured however much they
-are viewed, so fewer than 5 (or none) can still be returned. The list has no view counts, so the backend reads them from
-the detail of the first 12 movies of this year (and of last year when this year has too few) in parallel (at most about 4
-seconds); a movie whose detail fails or is late ranks after the known ones, in the provider's order. The provider orders `new-updates` by last update, so an old series with a new episode can be first
-there. An unavailable provider is `503`.
+The provider has no "featured" list, so the home page is derived from provider lists. `new-updates` is the first page of
+the newest updates in the provider's order (the provider orders it by last update, so an old series with a new episode
+can be first there); an unavailable provider is `503`. `featured` is up to 5 movies of this year or later, a mix so the hero is not all one kind: the 2 best known cinema films
+(from the first 50 films of the cinema list), the best known Korean series (one page of 50 Korean series of this year) and
+the 2 best known other series, anime included (one page of 50 movies of this year, any type). "Best known" is the highest
+`ratingCount`: how many people rated a movie tells how well known it is. A movie is picked once, and a place nobody can
+fill goes to the best known movie left in any of these lists. A movie without a poster is never featured, and one with an
+unknown `ratingCount` ranks after the known ones in the provider's order. The most rated comes first. Only when fewer
+than 5 exist, for example early in a new year, does a page of last year's movies fill the missing places (they come after
+this year's, ranked the same way); movies of older years are never featured however much they are rated, so fewer than 5
+(or none) can still be returned. A list that fails is skipped and the page still loads. No call per movie is needed.
 
 A second section, `cinema` ("Phim chiếu rạp"), follows `new-updates`: up to 14 cinema films of this year or later, most
-viewed first (last year's fill the missing places, as for `featured`), taken from the first 50 films of the provider's cinema list and ranked like `featured` (the details of the
-first 12 of them are read in the same parallel batch, so the 4 second limit is shared). The section is left out when the
-cinema list is unavailable or has no film of this year; that never makes the home page fail.
+rated first (last year's fill the missing places, as for `featured`), taken from the first 50 films of the provider's
+cinema list. The section is left out when the cinema list is unavailable or has no film of this year; that never makes the
+home page fail.
 
 **Movie detail response:**
 

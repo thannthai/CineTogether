@@ -81,7 +81,8 @@ public class KKPhimProvider implements MovieProvider {
                         KKPhimMapping.imageUrl(data.cdnImageDomain(), item.posterUrl()), item.year(),
                         item.category() == null ? List.of() : item.category().stream().map(Category::name).toList(),
                         KKPhimMapping.blankToNull(item.quality()), KKPhimMapping.blankToNull(item.lang()),
-                        KKPhimMapping.progress(item.episodeCurrent(), null, null)))
+                        KKPhimMapping.progress(item.episodeCurrent(), null, null),
+                        KKPhimMapping.ratingCount(item.imdb(), item.tmdb())))
                 .toList();
         boolean hasNext = data.params() != null && data.params().pagination() != null
                 && KKPhimMapping.hasNext(data.params().pagination().currentPage(),

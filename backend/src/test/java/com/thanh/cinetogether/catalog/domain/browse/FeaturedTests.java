@@ -3,17 +3,23 @@ package com.thanh.cinetogether.catalog.domain.browse;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
-import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import com.thanh.cinetogether.catalog.domain.movie.EpisodeProgress;
 import com.thanh.cinetogether.catalog.domain.movie.MovieSummary;
 import com.thanh.cinetogether.catalog.domain.movie.MovieType;
 
 class FeaturedTests {
 
-    private static MovieSummary movie(String id, Integer year) {
-        return new MovieSummary("kkphim", id, id, MovieType.SERIES, null, year, List.of());
+    private static MovieSummary movie(String id, Integer year, Integer ratings) {
+        return new MovieSummary("kkphim", id, id, null, MovieType.SERIES, "https://img.example/" + id + ".jpg", year,
+                List.of(), null, null, EpisodeProgress.NONE, ratings);
+    }
+
+    private static MovieSummary withoutPoster(String id, Integer year, Integer ratings) {
+        return new MovieSummary("kkphim", id, id, null, MovieType.SERIES, null, year, List.of(), null, null,
+                EpisodeProgress.NONE, ratings);
     }
 
     private static List<String> ids(List<MovieSummary> movies) {
@@ -21,73 +27,72 @@ class FeaturedTests {
     }
 
     @Test
-    void theMostViewedMoviesOfThisYearComeFirst() {
-        List<MovieSummary> updates = List.of(movie("a", 2026), movie("b", 2026), movie("c", 2026));
+    void theBestKnownMoviesOfThisYearComeFirst() {
+        List<MovieSummary> movies = List.of(movie("a", 2026, 10), movie("b", 2026, 5000), movie("c", 2026, 90));
 
-        assertThat(ids(Featured.pick(updates, Map.of("a", 10, "b", 500, "c", 90), 2026, 3)))
-                .containsExactly("b", "c", "a");
+        assertThat(ids(Featured.pick(movies, 2026, 3))).containsExactly("b", "c", "a");
     }
 
     @Test
-    void aMovieFromAnEarlierYearNeverCountsHoweverMuchItIsViewed() {
-        List<MovieSummary> updates = List.of(movie("old-hit", 2024), movie("new", 2026));
+    void aMovieFromAnEarlierYearNeverCountsHoweverWellKnownItIs() {
+        List<MovieSummary> movies = List.of(movie("old-hit", 2024, 1_000_000), movie("new", 2026, 5));
 
-        assertThat(ids(Featured.pick(updates, Map.of("old-hit", 1_000_000, "new", 5), 2026, 5)))
-                .containsExactly("new");
+        assertThat(ids(Featured.pick(movies, 2026, 5))).containsExactly("new");
     }
 
     @Test
     void aMovieFromALaterYearCountsAsNew() {
-        assertThat(ids(Featured.pick(List.of(movie("future", 2027)), Map.of(), 2026, 5))).containsExactly("future");
+        assertThat(ids(Featured.pick(List.of(movie("future", 2027, null)), 2026, 5))).containsExactly("future");
     }
 
     @Test
-    void moviesWithEqualOrUnknownViewsKeepTheProvidersOrderAndUnknownOnesComeLast() {
-        List<MovieSummary> updates = List.of(movie("a", 2026), movie("b", 2026), movie("c", 2026), movie("d", 2026));
+    void moviesWithEqualOrUnknownRatingsKeepTheProvidersOrderAndUnknownOnesComeLast() {
+        List<MovieSummary> movies = List.of(movie("a", 2026, null), movie("b", 2026, null), movie("c", 2026, 50),
+                movie("d", 2026, 50));
 
-        assertThat(ids(Featured.pick(updates, Map.of("c", 50, "d", 50), 2026, 4)))
-                .containsExactly("c", "d", "a", "b");
+        assertThat(ids(Featured.pick(movies, 2026, 4))).containsExactly("c", "d", "a", "b");
+    }
+
+    @Test
+    void aMovieWithoutAPosterIsNeverPicked() {
+        List<MovieSummary> movies = List.of(withoutPoster("no-poster", 2026, 9999), movie("ok", 2026, 1));
+
+        assertThat(ids(Featured.pick(movies, 2026, 5))).containsExactly("ok");
     }
 
     @Test
     void lastYearFillsTheMissingPlacesAfterThisYearsMovies() {
-        List<MovieSummary> updates = List.of(movie("last-a", 2025), movie("new", 2026), movie("last-b", 2025));
+        List<MovieSummary> movies = List.of(movie("last-a", 2025, 100), movie("new", 2026, 1),
+                movie("last-b", 2025, 900));
 
-        assertThat(ids(Featured.pick(updates, Map.of("new", 1, "last-a", 100, "last-b", 900), 2026, 3)))
-                .containsExactly("new", "last-b", "last-a");
+        assertThat(ids(Featured.pick(movies, 2026, 3))).containsExactly("new", "last-b", "last-a");
     }
 
     @Test
     void lastYearIsNotUsedWhenThisYearAlreadyFillsEveryPlace() {
-        List<MovieSummary> updates = List.of(movie("last", 2025), movie("a", 2026), movie("b", 2026));
+        List<MovieSummary> movies = List.of(movie("last", 2025, 1_000_000), movie("a", 2026, 1), movie("b", 2026, 2));
 
-        assertThat(ids(Featured.pick(updates, Map.of("last", 1_000_000), 2026, 2))).containsExactly("a", "b");
+        assertThat(ids(Featured.pick(movies, 2026, 2))).containsExactly("b", "a");
     }
 
     @Test
     void onlyThePreviousYearCanFillNotOlderOnes() {
-        List<MovieSummary> updates = List.of(movie("two-years", 2024), movie("last", 2025));
+        List<MovieSummary> movies = List.of(movie("two-years", 2024, 5), movie("last", 2025, 5));
 
-        assertThat(ids(Featured.pick(updates, Map.of(), 2026, 5))).containsExactly("last");
+        assertThat(ids(Featured.pick(movies, 2026, 5))).containsExactly("last");
     }
 
     @Test
     void keepsAtMostTheRequestedNumber() {
-        List<MovieSummary> updates = List.of(movie("a", 2026), movie("b", 2026), movie("c", 2026));
+        List<MovieSummary> movies = List.of(movie("a", 2026, 1), movie("b", 2026, 2), movie("c", 2026, 3));
 
-        assertThat(Featured.pick(updates, Map.of(), 2026, 2)).hasSize(2);
+        assertThat(Featured.pick(movies, 2026, 2)).hasSize(2);
     }
 
     @Test
     void withoutAnyNewMovieThereIsNothingToFeature() {
-        assertThat(Featured.pick(List.of(movie("old", 2020), movie("none", null)), Map.of("old", 9), 2026, 5)).isEmpty();
-        assertThat(Featured.pick(List.of(), Map.of(), 2026, 5)).isEmpty();
-    }
-
-    @Test
-    void aMovieWithoutAYearIsNotNew() {
-        assertThat(ids(Featured.pick(List.of(movie("unknown", null), movie("new", 2026)), Map.of(), 2026, 5)))
-                .containsExactly("new");
+        assertThat(Featured.pick(List.of(movie("old", 2020, 9), movie("none", null, 9)), 2026, 5)).isEmpty();
+        assertThat(Featured.pick(List.of(), 2026, 5)).isEmpty();
     }
 
 }
