@@ -1,5 +1,5 @@
 import type { EpisodeProgress, MovieType } from '../types'
-import { progressLabel } from '../movieLabels'
+import { languageLabel, progressLabel } from '../movieLabels'
 
 type Props = {
   quality?: string | null
@@ -14,6 +14,7 @@ type Props = {
 // Small stickers: quality (FHD or HD) and language (Vietsub) are neutral; only the progress has a color. The progress ("Tập 8/24", "Hoàn tất 36/36", "Full").
 export function MovieTags({ quality, language, progress, type, part, className = '' }: Props) {
   const label = part === 'badges' ? null : progressLabel(progress, type)
+  language = languageLabel(language)
   if (part === 'progress') quality = language = null
   if (!quality && !language && !label) return null
   return (

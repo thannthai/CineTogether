@@ -46,7 +46,7 @@ export function InterestCards() {
       <div className="row-heading">
         <h2 id="interests-title">Bạn đang quan tâm gì?</h2>
         <Link className="see-all" to={browseHref()}>
-          Khám phá tất cả
+          Khám phá tất cả <Icon name="arrow" size={14} />
         </Link>
       </div>
       <div className="interest-row">

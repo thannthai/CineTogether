@@ -42,3 +42,10 @@ export function youtubeId(link: string | null | undefined): string | null {
 // The original (usually English) title is shown next to the Vietnamese one only when there is one that differs.
 export const differentTitle = ({ title, originalTitle }: { title: string; originalTitle?: string | null }): boolean =>
   !!originalTitle?.trim() && originalTitle.trim().toLowerCase() !== title.trim().toLowerCase()
+
+// The language tag shows only "Vietsub": "Vietsub + Thuyết Minh" and "Vietsub + Lồng Tiếng" are "Vietsub", and a movie
+// without subtitles has no language tag. Accents are ignored when matching.
+export function languageLabel(language: string | null | undefined): string | null {
+  const plain = (language ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  return plain.includes('vietsub') ? 'Vietsub' : null
+}

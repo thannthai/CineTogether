@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { differentTitle, progressLabel, youtubeId } from './movieLabels'
+import { differentTitle, languageLabel, progressLabel, youtubeId } from './movieLabels'
 
 describe('progressLabel', () => {
   it('shows the latest episode and the total of a series that is still airing', () => {
@@ -59,5 +59,22 @@ describe('differentTitle', () => {
     expect(differentTitle({ title: 'Mai', originalTitle: null })).toBe(false)
     expect(differentTitle({ title: 'Mai', originalTitle: '  ' })).toBe(false)
     expect(differentTitle({ title: 'Oppenheimer', originalTitle: ' oppenheimer ' })).toBe(false)
+  })
+})
+
+describe('languageLabel', () => {
+  it('shows only Vietsub, whatever else the provider lists', () => {
+    expect(languageLabel('Vietsub')).toBe('Vietsub')
+    expect(languageLabel('Vietsub + Thuyết Minh')).toBe('Vietsub')
+    expect(languageLabel('Thuyết Minh + Vietsub')).toBe('Vietsub')
+    expect(languageLabel('Vietsub + Lồng Tiếng')).toBe('Vietsub')
+  })
+
+  it('has no tag without Vietsub', () => {
+    expect(languageLabel('Thuyết Minh')).toBeNull()
+    expect(languageLabel('Lồng Tiếng')).toBeNull()
+    expect(languageLabel('')).toBeNull()
+    expect(languageLabel(null)).toBeNull()
+    expect(languageLabel(undefined)).toBeNull()
   })
 })

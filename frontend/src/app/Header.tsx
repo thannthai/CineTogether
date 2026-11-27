@@ -11,17 +11,10 @@ import { AccountMenu, useAuth, useAuthDialog } from '../features/auth'
 import { useTheme } from '../shared/lib/theme'
 import { Icon } from '../shared/ui/Icon'
 import { SoonTag } from '../shared/ui/SoonTag'
-import { activeNav, type NavKey } from './activeNav'
+import { activeNav } from './activeNav'
 import { Logo } from './Logo'
+import { NAV_LINKS as LINKS } from './navLinks'
 
-// TV Shows stays hidden until the backend can list it (see progress.md).
-const LINKS: { key: NavKey; label: string; to: string }[] = [
-  { key: 'new', label: 'Phim mới', to: browseHref() },
-  { key: 'movie', label: 'Phim lẻ', to: browseHref({ type: 'MOVIE' }) },
-  { key: 'series', label: 'Phim bộ', to: browseHref({ type: 'SERIES' }) },
-  { key: 'cinema', label: 'Chiếu rạp', to: browseHref({ list: 'CINEMA' }) },
-  { key: 'anime', label: 'Anime', to: browseHref({ list: 'ANIME' }) },
-]
 
 type MenuKey = 'genre' | 'country'
 
