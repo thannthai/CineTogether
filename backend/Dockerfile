@@ -3,6 +3,7 @@ FROM eclipse-temurin:21-jdk AS build
 WORKDIR /app
 COPY gradlew build.gradle.kts settings.gradle.kts ./
 COPY gradle gradle
+COPY docker/mirror.init.gradle /root/.gradle/init.d/mirror.gradle
 COPY src src
 # Tests need Docker (Testcontainers) and run in CI, not in the image build.
 # Maven Central sometimes answers 429 (too many requests) to the shared address of a build machine. The downloads that
