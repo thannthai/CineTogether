@@ -2,7 +2,8 @@
 
 ## Current Phase
 
-Authentication & User Profile
+Watch Alone is feature complete (2026-11-27); the next phase is Watch Party Room Management. The Authentication and
+Movie Catalog & Watch Alone milestone boxes stay unchecked until the manual checks under "Still to check" are done.
 
 ## Milestones
 
@@ -232,11 +233,26 @@ cả" links do not carry the year.
 Slice 5 (done): `/together` is a "Sắp ra mắt" page with sample rooms built from real posters, labelled "Dữ liệu minh họa";
 every action opens the shared Soon dialog. Rooms and the Watch Party engine are still not built.
 
-Known concerns: home does about 12 extra detail requests for the hero plus 8 for theme covers (no cache by decision);
-the trailer embed depends on YouTube allowing embedding; mobile layout, error states, fullscreen and Safari unverified.
+UI polish (done 2026-11-27, `npm run lint`, `npm test` 127 tests and `npm run build` pass): the language tag shows only
+Vietsub (Thuyết Minh and Lồng Tiếng are never shown, and no audio-version choice is planned); header and movie title text
+is larger and the header spacing tighter; "Khám phá tất cả" has an arrow; the footer is a centered block (logo, slogan, one
+sentence about watching with friends and people who love films, copyright), with no social icons or link row because the
+project has none yet. Checked by eye by the user while working; the cases below were not.
 
-Deferred on purpose (not blocking): quality selector (only useful when a stream has more than one level), trailer in the
-hero, Chiếu rạp, Anime and TV Shows lists and a year filter (need backend support), TMDb/OMDb only if ever needed.
+Known concerns: the home page now makes about 4 provider calls (the provider answered HTTP 429 once when called many times
+in a row); the trailer embed depends on YouTube allowing embedding, and its centre pause and previous/next buttons still
+show; the theme cover cards pick a recently updated movie of this year, not the best known one.
+
+Still to check by hand (not done yet): the Authentication items listed above (rename in "Hồ sơ", session after a reload,
+sign-out, a new account with a display name), the watch page for a guest, the no-source and provider-failure states, full
+screen and the auto-hiding controls, touch and phone layout, Safari, and the new "Năm" row, cinema and anime pages and hero.
+
+Improve later (not blocking Watch Party): a backend cache with a few minutes of expiry (Caffeine behind `MovieProvider`,
+never for `playback`; less urgent now); a TV Shows list; the total episode count on cards (the provider's lists do not carry
+it, only the detail does); a quality selector (every stream has one level today); dropping `loop` and `playlist` from the
+trailer embed to try to lose its arrows; forgot-password; a fuller synopsis source such as TMDb (KKPhim cuts some synopses
+itself); the year on the home rows' "Xem tất cả" links; a trending signal (the rating counts are cumulative, so the hero
+favours well-known titles over this week's hits).
 
 ## Blockers
 
