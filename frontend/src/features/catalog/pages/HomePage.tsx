@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { errorMessage } from '../../../shared/lib/apiError'
 import { useAsync, type AsyncState } from '../../../shared/lib/useAsync'
 import { Icon } from '../../../shared/ui/Icon'
@@ -7,6 +8,7 @@ import { browseHref, type BrowseFilters } from '../browseFilters'
 import { Hero, HeroSkeleton } from '../components/Hero'
 import { InterestCards } from '../components/InterestCards'
 import { MovieRow } from '../components/MovieRow'
+import { fillFromPreviousYear } from '../recentYears'
 import type { MovieSummary } from '../types'
 import '../catalog.css'
 
@@ -22,6 +24,19 @@ function BrowseRow({ title, filters }: { title: string; filters: BrowseFilters }
   return <MovieRow title={title} seeAllTo={browseHref(filters)} state={state} onRetry={state.reload} />
 }
 
+// A row of the movies of this year; when there are fewer than a full row, last year's fill the rest. The year is read
+// at run time, so nothing has to change when a new year starts.
+function RecentRow({ title, filters }: { title: string; filters: BrowseFilters }) {
+  const [year] = useState(() => new Date().getFullYear())
+  const state = useAsync(async (signal) => {
+    const current = (await browseMovies({ ...filters, year }, { size: ROW_SIZE }, signal)).items
+    if (current.length >= ROW_SIZE) return current
+    const previous = (await browseMovies({ ...filters, year: year - 1 }, { size: ROW_SIZE }, signal)).items
+    return fillFromPreviousYear(current, previous, ROW_SIZE)
+  }, `recent:${year}:${JSON.stringify(filters)}`)
+  return <MovieRow title={title} seeAllTo={browseHref(filters)} state={state} onRetry={state.reload} />
+}
+
 export function HomePage() {
   const home = useAsync(getHome, 'home')
 
@@ -31,6 +46,9 @@ export function HomePage() {
       : home.status === 'error'
         ? { status: 'error', error: home.error }
         : { status: 'loading' }
+
+  // This year's most viewed cinema films, picked by the backend. There is no row when the section is missing.
+  const cinema = home.status === 'ready' ? home.data.sections.find((section) => section.key === 'cinema') : undefined
 
   return (
     <>
@@ -54,7 +72,15 @@ export function HomePage() {
       )}
       <BrowseRow title="Phim lẻ mới cập nhật" filters={{ type: 'MOVIE' }} />
       <BrowseRow title="Phim bộ mới cập nhật" filters={{ type: 'SERIES' }} />
-      <BrowseRow title="Dành cho gia đình" filters={{ genre: 'gia-dinh' }} />
+      {cinema && (
+        <MovieRow
+          title={cinema.title}
+          seeAllTo={browseHref({ list: 'CINEMA' })}
+          state={{ status: 'ready', data: cinema.items }}
+          onRetry={home.reload}
+        />
+      )}
+      <RecentRow title="Dành cho gia đình" filters={{ genre: 'gia-dinh' }} />
     </>
   )
 }

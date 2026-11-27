@@ -2,23 +2,27 @@ import type { BrowseFilters } from './browseFilters'
 import { parseCountries } from './countrySelection'
 import { COUNTRIES, GENRES, type FilterOption } from './filters'
 
+export const LIST_NAMES = { CINEMA: 'Phim chiếu rạp', ANIME: 'Anime' } as const
+
 const nameOf = (list: FilterOption[], slug: string) => list.find((o) => o.slug === slug)?.name ?? slug
 
 // The heading of the browse page for the current filters.
-export function browseTitle({ type, genre, country, q }: BrowseFilters): string {
+export function browseTitle({ type, list, genre, country, year, q }: BrowseFilters): string {
   if (q) return `Kết quả cho “${q}”`
   const countries = parseCountries(country)
   const parts = [
-    type === 'MOVIE' ? 'Phim lẻ' : type === 'SERIES' ? 'Phim bộ' : null,
+    list ? LIST_NAMES[list] : type === 'MOVIE' ? 'Phim lẻ' : type === 'SERIES' ? 'Phim bộ' : null,
     genre ? nameOf(GENRES, genre) : null,
     countries.length > 0 ? countries.map((slug) => nameOf(COUNTRIES, slug)).join(', ') : null,
+    year ? String(year) : null,
   ].filter((part): part is string => part !== null)
   return parts.length > 0 ? parts.join(' · ') : 'Phim mới cập nhật'
 }
 
 // Each selected country counts, like the chips shown for the active filters.
-export const activeFilterCount = ({ type, genre, country }: BrowseFilters): number =>
-  [type, genre].filter(Boolean).length + parseCountries(country).length
+// The list wins over the type in the API, so only one of them counts.
+export const activeFilterCount = ({ type, list, genre, country, year }: BrowseFilters): number =>
+  [list ?? type, genre, year].filter(Boolean).length + parseCountries(country).length
 
 export type PageWindow = { items: (number | '…')[]; prev: number | null; next: number | null }
 

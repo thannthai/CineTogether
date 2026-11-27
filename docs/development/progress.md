@@ -206,6 +206,23 @@ has its own "Đang lọc" chip and the filter count counts each country (`countr
 with `curl` against the running backend and the real provider (OR result, 400 for 6 slugs and for a bad slug). Not yet
 checked by eye in the browser. The filter panel, header menu, search field and buttons also got thinner (1px) or no borders.
 
+Cinema, anime, year and this year's rows (done 2026-11-27; backend `./gradlew test` 219 tests, frontend `npm test` 125 tests,
+lint and build pass; checked with `curl` on the running backend): `GET /movies` has `list` (`CINEMA`, `ANIME`: the provider's
+cinema and animation lists; the list wins over `type` and search ignores it) and `year` (1900 to 2100, 400 otherwise; it
+also applies to search). `GET /catalog/home` has a second section `cinema` ("Phim chiếu rạp"): up to 14 cinema films of
+this year ranked by views like the hero, from one page of 50, in the same parallel batch of detail calls; it is left out
+when the cinema list fails or is empty. Years are never hard coded: `Featured.pick` ranks this year's movies first and lets
+last year's fill only the missing places, so early in a new year the hero and the cinema row are not empty; the "Dành cho
+gia đình" row asks for the current year and tops up from the previous one (`recentYears.ts`). The menu has "Chiếu rạp"
+and "Anime" (`/movies?list=...`, no type row in the filter panel, their own chip and title; add Nhật Bản for Japanese
+anime); TV Shows stays hidden. The filter panel has a "Năm" row (the current year and the nine before it, read at run
+time). Lists keep the provider's order, which is the last update, not the release year (the provider can sort by year
+but then a new episode of an older series no longer lifts it, so the year filter was chosen over a sort option). Known
+concern, now seen for real: the provider answered HTTP 429 once after many calls in a row, and the home page makes about
+26 provider calls with no cache, so a cache with a few minutes of expiry in the backend (Caffeine behind `MovieProvider`,
+not for `playback`) is the next small task. Not checked by eye in the browser yet: the "Năm" row, the cinema and anime
+pages. The home rows' "Xem tất cả" links do not carry the year.
+
 Slice 5 (done): `/together` is a "Sắp ra mắt" page with sample rooms built from real posters, labelled "Dữ liệu minh họa";
 every action opens the shared Soon dialog. Rooms and the Watch Party engine are still not built.
 

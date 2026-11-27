@@ -22,6 +22,16 @@ describe('activeNav', () => {
     expect(nav('/movies?type=SERIES')).toBe('series')
   })
 
+  it('highlights the cinema list, which wins over the type like in the API', () => {
+    expect(nav('/movies?list=CINEMA')).toBe('cinema')
+    expect(nav('/movies?list=CINEMA&type=SERIES&genre=hanh-dong')).toBe('cinema')
+  })
+
+  it('highlights the anime list', () => {
+    expect(nav('/movies?list=ANIME')).toBe('anime')
+    expect(nav('/movies?list=ANIME&country=nhat-ban')).toBe('anime')
+  })
+
   it('highlights a genre or a country filter used alone', () => {
     expect(nav('/movies?genre=hanh-dong')).toBe('genre')
     expect(nav('/movies?country=han-quoc')).toBe('country')

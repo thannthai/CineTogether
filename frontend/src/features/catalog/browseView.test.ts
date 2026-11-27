@@ -80,3 +80,27 @@ describe('several countries', () => {
     expect(activeFilterCount({ type: 'SERIES', country: 'han-quoc,trung-quoc' })).toBe(3)
   })
 })
+
+describe('the cinema list', () => {
+  it('names the page and combines with the other filters', () => {
+    expect(browseTitle({ list: 'CINEMA' })).toBe('Phim chiếu rạp')
+    expect(browseTitle({ list: 'CINEMA', country: 'han-quoc' })).toBe('Phim chiếu rạp · Hàn Quốc')
+  })
+
+  it('names the anime list too', () => {
+    expect(browseTitle({ list: 'ANIME', country: 'nhat-ban' })).toBe('Anime · Nhật Bản')
+  })
+
+  it('wins over the type, as it does in the API', () => {
+    expect(browseTitle({ list: 'CINEMA', type: 'SERIES' })).toBe('Phim chiếu rạp')
+    expect(activeFilterCount({ list: 'CINEMA', type: 'SERIES', genre: 'hanh-dong' })).toBe(2)
+  })
+})
+
+describe('the year', () => {
+  it('ends the title and counts as a filter', () => {
+    expect(browseTitle({ year: 2026 })).toBe('2026')
+    expect(browseTitle({ type: 'SERIES', country: 'han-quoc', year: 2025 })).toBe('Phim bộ · Hàn Quốc · 2025')
+    expect(activeFilterCount({ type: 'SERIES', year: 2026 })).toBe(2)
+  })
+})

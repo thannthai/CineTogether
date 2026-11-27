@@ -49,3 +49,29 @@ describe('filter option lists', () => {
     expect(MENU_COUNTRIES.every((country) => country !== undefined)).toBe(true)
   })
 })
+
+describe('the cinema list', () => {
+  it('is written to and read from the URL as list=CINEMA', () => {
+    expect(browseHref({ list: 'CINEMA' })).toBe('/movies?list=CINEMA')
+    expect(parseBrowseFilters(new URLSearchParams('list=CINEMA')).list).toBe('CINEMA')
+  })
+
+  it('ignores any other list value', () => {
+    expect(parseBrowseFilters(new URLSearchParams('list=ANIME')).list).toBe('ANIME')
+    expect(parseBrowseFilters(new URLSearchParams('list=TV_SHOWS')).list).toBeUndefined()
+    expect(parseBrowseFilters(new URLSearchParams('list=cinema')).list).toBeUndefined()
+  })
+})
+
+describe('the year', () => {
+  it('is written to and read from the URL', () => {
+    expect(browseHref({ year: 2026 })).toBe('/movies?year=2026')
+    expect(parseBrowseFilters(new URLSearchParams('year=2026')).year).toBe(2026)
+  })
+
+  it('ignores a value that is not a year the API accepts', () => {
+    for (const bad of ['year=abc', 'year=', 'year=1899', 'year=2101', 'year=2026.5']) {
+      expect(parseBrowseFilters(new URLSearchParams(bad)).year).toBeUndefined()
+    }
+  })
+})

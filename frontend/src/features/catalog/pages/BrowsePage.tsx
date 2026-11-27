@@ -5,7 +5,7 @@ import { useAsync } from '../../../shared/lib/useAsync'
 import { Icon } from '../../../shared/ui/Icon'
 import { browseMovies } from '../api'
 import { browseHref, parseBrowseFilters, parsePage, type BrowseFilters } from '../browseFilters'
-import { activeFilterCount, browseTitle } from '../browseView'
+import { activeFilterCount, browseTitle, LIST_NAMES } from '../browseView'
 import { countriesParam, parseCountries, toggleCountry } from '../countrySelection'
 import { COUNTRIES, GENRES } from '../filters'
 import { FilterPanel } from '../components/FilterPanel'
@@ -39,7 +39,10 @@ export function BrowsePage() {
   }
 
   const removable: { label: string; remove: () => void }[] = []
-  if (filters.type) {
+  // The list wins over the type in the API, so the type chip is not shown next to it.
+  if (filters.list) {
+    removable.push({ label: LIST_NAMES[filters.list], remove: () => go({ ...filters, list: undefined }) })
+  } else if (filters.type) {
     removable.push({
       label: filters.type === 'MOVIE' ? 'Phim lẻ' : 'Phim bộ',
       remove: () => go({ ...filters, type: undefined }),
@@ -55,6 +58,9 @@ export function BrowsePage() {
       label: nameOf(COUNTRIES, slug),
       remove: () => go({ ...filters, country: countriesParam(toggleCountry(countries, slug)) }),
     })
+  }
+  if (filters.year) {
+    removable.push({ label: String(filters.year), remove: () => go({ ...filters, year: undefined }) })
   }
 
   return (
@@ -79,8 +85,9 @@ export function BrowsePage() {
 
       {panelOpen && (
         <FilterPanel
-          key={JSON.stringify([filters.type, filters.genre, filters.country])}
-          applied={{ type: filters.type, genre: filters.genre, country: filters.country }}
+          key={JSON.stringify([filters.type, filters.genre, filters.country, filters.year])}
+          applied={{ type: filters.type, genre: filters.genre, country: filters.country, year: filters.year }}
+          hideType={filters.list !== undefined}
           onApply={(draft) => go({ ...filters, ...draft })}
           onClear={() => go({ q: filters.q })}
         />

@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { type BrowseFilters, type MovieTypeFilter } from '../browseFilters'
 import { countriesParam, MAX_COUNTRIES, parseCountries, toggleCountry } from '../countrySelection'
-import { COUNTRIES, GENRES, type FilterOption } from '../filters'
+import { COUNTRIES, GENRES, yearOptions, type FilterOption } from '../filters'
 
-type Draft = Pick<BrowseFilters, 'type' | 'genre' | 'country'>
+type Draft = Pick<BrowseFilters, 'type' | 'genre' | 'country' | 'year'>
 
 const TYPES: { value: MovieTypeFilter | undefined; label: string }[] = [
   { value: undefined, label: 'Tất cả' },
@@ -15,9 +15,11 @@ type Props = {
   applied: Draft
   onApply: (draft: Draft) => void
   onClear: () => void
+  // The cinema list ignores the type, so its row is not offered.
+  hideType?: boolean
 }
 
-function Row<T extends string | undefined>({
+function Row<T extends string | number | undefined>({
   label,
   options,
   value,
@@ -98,16 +100,21 @@ const slugOptions = (list: FilterOption[]) => [
 
 // Choices are kept as a draft and only change the URL when "Áp dụng" is pressed.
 // The page remounts this panel (by key) whenever the applied filters change.
-export function FilterPanel({ applied, onApply, onClear }: Props) {
+export function FilterPanel({ applied, onApply, onClear, hideType }: Props) {
   const [draft, setDraft] = useState<Draft>({ ...applied, country: countriesParam(parseCountries(applied.country)) })
+  // Read once when the panel opens, so the list of years does not change while it is open.
+  const [thisYear] = useState(() => new Date().getFullYear())
   const changed =
     draft.type !== applied.type ||
     draft.genre !== applied.genre ||
-    draft.country !== countriesParam(parseCountries(applied.country))
+    draft.country !== countriesParam(parseCountries(applied.country)) ||
+    draft.year !== applied.year
 
   return (
     <div className="filter-panel">
-      <Row label="Loại phim" options={TYPES} value={draft.type} onChange={(type) => setDraft({ ...draft, type })} />
+      {!hideType && (
+        <Row label="Loại phim" options={TYPES} value={draft.type} onChange={(type) => setDraft({ ...draft, type })} />
+      )}
       <Row
         label="Thể loại"
         options={slugOptions(GENRES)}
@@ -119,6 +126,15 @@ export function FilterPanel({ applied, onApply, onClear }: Props) {
         options={COUNTRIES}
         selected={parseCountries(draft.country)}
         onChange={(selected) => setDraft({ ...draft, country: countriesParam(selected) })}
+      />
+      <Row
+        label="Năm"
+        options={[
+          { value: undefined as number | undefined, label: 'Tất cả' },
+          ...yearOptions(thisYear).map((year) => ({ value: year as number | undefined, label: String(year) })),
+        ]}
+        value={draft.year}
+        onChange={(year) => setDraft({ ...draft, year })}
       />
       <div className="filter-actions">
         <button className="btn primary" disabled={!changed} onClick={() => onApply(draft)}>

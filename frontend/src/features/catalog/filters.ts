@@ -90,6 +90,10 @@ export const MENU_COUNTRIES: FilterOption[] = MENU_COUNTRY_SLUGS.map(
 )
 
 // The detail response lists genres by name only; this gives the slug the filters use, if there is one.
+// The current year and the earlier ones, newest first, for the year filter.
+export const yearOptions = (currentYear: number, count = 10): number[] =>
+  Array.from({ length: count }, (_, i) => currentYear - i)
+
 export function genreSlug(name: string): string | undefined {
   const wanted = name.trim().toLowerCase()
   return GENRES.find((genre) => genre.name.toLowerCase() === wanted)?.slug
