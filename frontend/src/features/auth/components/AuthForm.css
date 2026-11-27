@@ -16,6 +16,8 @@
   font-size: 12px;
   line-height: 1.8;
   color: var(--text-muted);
+  /* When it has to wrap, split the lines evenly instead of leaving one word alone. */
+  text-wrap: balance;
 }
 
 .auth-form {
@@ -104,6 +106,14 @@
 
 .auth-form .btn {
   margin-top: 4px;
+}
+
+.forgot-link {
+  justify-self: end;
+  margin-top: -6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary-strong);
 }
 
 .auth-switch {

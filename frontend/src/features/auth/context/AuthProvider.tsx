@@ -18,7 +18,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const supabase = getSupabase()
     void supabase.auth.getSession().then(({ data }) => setSession((current) => current ?? data.session))
-    const { data } = supabase.auth.onAuthStateChange((_event, next) => setSession(next))
+    const { data } = supabase.auth.onAuthStateChange((event, next) => {
+      setSession(next)
+      // The link in the reset email brings the user back here signed in: ask for the new password.
+      if (event === 'PASSWORD_RECOVERY') setDialog('reset')
+    })
     return () => data.subscription.unsubscribe()
   }, [])
 
@@ -53,6 +57,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // With email confirmation on, an address that already exists comes back as a user with no identities.
       if (data.user && data.user.identities?.length === 0) throw { code: 'user_already_exists' }
       return data.session ? 'signedIn' : 'confirmEmail'
+    },
+    // Supabase answers the same way whether or not the address has an account.
+    async requestPasswordReset(emailValue) {
+      const { error } = await getSupabase().auth.resetPasswordForEmail(emailValue, {
+        redirectTo: window.location.origin,
+      })
+      if (error) throw error
+    },
+    async setNewPassword(password) {
+      const { error } = await getSupabase().auth.updateUser({ password })
+      if (error) throw error
     },
     async signOut() {
       const { error } = await getSupabase().auth.signOut()

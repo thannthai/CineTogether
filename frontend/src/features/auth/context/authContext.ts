@@ -8,6 +8,8 @@ export type Auth = {
   email: string
   signIn: (email: string, password: string) => Promise<void>
   signUp: (input: { email: string; password: string; displayName: string }) => Promise<SignUpResult>
+  requestPasswordReset: (email: string) => Promise<void>
+  setNewPassword: (password: string) => Promise<void>
   signOut: () => Promise<void>
   rename: (displayName: string) => Promise<void>
 }

@@ -9,6 +9,7 @@ describe('authErrorMessage', () => {
     expect(authErrorMessage({ code: 'email_exists' })).toMatch(/đã được đăng ký/)
     expect(authErrorMessage({ code: 'weak_password' })).toMatch(/Mật khẩu/)
     expect(authErrorMessage({ code: 'over_request_rate_limit' })).toMatch(/quá nhiều/)
+    expect(authErrorMessage({ code: 'same_password' })).toMatch(/khác mật khẩu cũ/)
   })
 
   it('reports a network failure', () => {

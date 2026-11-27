@@ -8,6 +8,7 @@ const BY_CODE: Record<string, string> = {
   user_already_exists: 'Email này đã được đăng ký.',
   email_exists: 'Email này đã được đăng ký.',
   weak_password: 'Mật khẩu quá yếu, hãy chọn mật khẩu khác.',
+  same_password: 'Mật khẩu mới phải khác mật khẩu cũ.',
   over_request_rate_limit: 'Bạn thử quá nhiều lần. Vui lòng đợi một lát rồi thử lại.',
   over_email_send_rate_limit: 'Bạn thử quá nhiều lần. Vui lòng đợi một lát rồi thử lại.',
 }
