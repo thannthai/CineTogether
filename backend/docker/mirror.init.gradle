@@ -1,0 +1,20 @@
+// Used only inside the Docker build. Render's shared build address is often rate limited (HTTP 429) by Maven Central,
+// so Gradle tries Google's read-only mirror of Maven Central first and falls back to the normal repositories.
+def mirror = 'https://maven-central.storage-download.googleapis.com/maven2/'
+
+settingsEvaluated { settings ->
+    settings.pluginManagement.repositories {
+        maven { url = mirror }
+        gradlePluginPortal()
+    }
+}
+
+allprojects {
+    buildscript.repositories {
+        maven { url = mirror }
+        mavenCentral()
+    }
+    repositories {
+        maven { url = mirror }
+    }
+}
