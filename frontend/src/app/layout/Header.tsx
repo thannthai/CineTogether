@@ -219,7 +219,6 @@ export function Header() {
           {LINKS.map(({ key, label, to }) => (
             <Link key={key} to={to} className={active === key ? 'active' : ''} onClick={closeAll}>
               {label}
-              <Icon name="chevron" size={15} />
             </Link>
           ))}
           {MENU_KEYS.map((key) => (
@@ -255,7 +254,6 @@ export function Header() {
             <span>
               Xem chung <SoonTag />
             </span>
-            <Icon name="chevron" size={15} />
           </Link>
         </div>
         {auth.status === 'signedOut' && (

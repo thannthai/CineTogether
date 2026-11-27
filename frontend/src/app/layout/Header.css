@@ -40,6 +40,7 @@
 }
 
 .nav-item {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -58,9 +59,19 @@
   background: var(--surface-soft);
 }
 
+/* The page you are on: pink text and a thin underline, no background. */
 .nav-item.active {
   color: var(--primary-strong);
-  background: var(--primary-soft);
+  background: none;
+}
+
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  inset: auto 8px 1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--primary);
 }
 
 .nav-item:focus-visible {
@@ -348,6 +359,7 @@
 }
 
 .drawer-head {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -370,6 +382,7 @@
 
 .drawer-links > a,
 .drawer-group > button {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -400,10 +413,21 @@
   background: var(--surface-soft);
 }
 
+/* The page you are on: pink text and a thin pink bar on the left, no background. */
 .drawer-links > a.active,
 .drawer-group > button.active {
   color: var(--primary-strong);
-  background: var(--primary-soft);
+  background: none;
+}
+
+.drawer-links > a.active::before,
+.drawer-group > button.active::before {
+  content: '';
+  position: absolute;
+  inset: 11px auto 11px 2px;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--primary);
 }
 
 .drawer-links a:focus-visible,
@@ -576,6 +600,7 @@
 }
 
 .drawer-search {
+  flex-shrink: 0; /* the drawer is a column: without this the search bar is squeezed when a group opens */
   display: flex;
   align-items: center;
   gap: 10px;

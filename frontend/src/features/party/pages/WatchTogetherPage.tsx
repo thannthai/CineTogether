@@ -1,54 +1,75 @@
+import { useState } from 'react'
 import { errorMessage } from '../../../shared/lib/apiError'
 import { useAsync } from '../../../shared/lib/useAsync'
 import { Icon } from '../../../shared/ui/Icon'
 import { useSoon } from '../../../shared/ui/soonContext'
-import { SoonTag } from '../../../shared/ui/SoonTag'
-import { browseMovies, typeLabel } from '../../catalog'
-import { mockRooms } from '../lib/mockRooms'
+import { browseMovies, getMovieCached } from '../../catalog'
+import { mockRooms, type RoomStatus } from '../lib/mockRooms'
+import { filterRooms, type RoomTab } from '../lib/roomFilter'
+import { joinNote, movieLine } from '../lib/roomText'
 import '../party.css'
+
+const TABS: { key: RoomTab; label: string }[] = [
+  { key: 'all', label: 'Tất cả' },
+  { key: 'live', label: 'Đang xem' },
+  { key: 'upcoming', label: 'Sắp bắt đầu' },
+]
+
+const STATUS_LABEL: Record<RoomStatus, string> = { live: 'Đang xem', upcoming: 'Sắp bắt đầu', ended: 'Đã kết thúc' }
 
 // Watch Together is announced, not built: every action opens the "coming soon" dialog and the rooms are samples.
 export function WatchTogetherPage() {
   const openSoon = useSoon()
-  const movies = useAsync(async (signal) => (await browseMovies({}, { size: 6 }, signal)).items, 'together-sample')
-  const rooms = movies.status === 'ready' ? mockRooms(movies.data) : []
+  const [tab, setTab] = useState<RoomTab>('all')
+  const [query, setQuery] = useState('')
+  // The sample rooms play real movies; the wide cover is the movie's landscape image, which only its detail has.
+  // A detail that fails just leaves that room with the poster as its cover.
+  const movies = useAsync(async (signal) => {
+    const items = (await browseMovies({}, { size: 6 }, signal)).items
+    const details = await Promise.all(items.map((movie) => getMovieCached(movie.providerKey, movie.movieId).catch(() => null)))
+    const covers = new Map(items.map((movie, i) => [movie.movieId, details[i]?.backdropUrl ?? null]))
+    return { items, covers }
+  }, 'together-sample')
+  const rooms = filterRooms(movies.status === 'ready' ? mockRooms(movies.data.items) : [], tab, query)
 
   return (
     <section className="together page-width">
-      <div className="together-head">
-        <h1>Xem phim cùng nhau</h1>
-        <SoonTag />
-      </div>
-      <p className="together-lead">Tạo phòng riêng với bạn bè hoặc khám phá những buổi xem phim đang diễn ra.</p>
-
-      <div className="together-actions">
-        <article className="together-action">
-          <span className="party-action-icon">
-            <Icon name="plus" size={20} />
-          </span>
-          <div>
-            <h2>Tạo phòng riêng</h2>
-            <p>Tạo không gian xem phim riêng và mời bạn bè tham gia.</p>
-          </div>
+      <header className="together-head">
+        <div>
+          <p className="together-eyebrow">Một bộ phim, thêm những người bạn</p>
+          <h1 className="together-title">Khám phá phòng công khai</h1>
+          <p className="together-lead">Tham gia những buổi xem phim cùng cộng đồng CineTogether.</p>
+        </div>
+        <div className="together-actions">
           <button className="btn primary" onClick={openSoon}>
-            Tạo phòng
+            <Icon name="plus" size={16} /> Tạo phòng
           </button>
-        </article>
-        <article className="together-action">
-          <span className="party-action-icon">
-            <Icon name="link" size={20} />
-          </span>
-          <div>
-            <h2>Tham gia bằng link</h2>
-            <p>Đã có lời mời? Nhập liên kết hoặc mã phòng để tham gia.</p>
-          </div>
           <button className="btn secondary" onClick={openSoon}>
-            Tham gia phòng <Icon name="arrow" size={14} />
+            <Icon name="link" size={16} /> Tham gia bằng link
           </button>
-        </article>
+        </div>
+      </header>
+
+      <div className="room-toolbar">
+        <div className="room-tabs" role="tablist" aria-label="Lọc phòng theo trạng thái">
+          {TABS.map(({ key, label }) => (
+            <button key={key} role="tab" aria-selected={tab === key} className={tab === key ? 'selected' : ''} onClick={() => setTab(key)}>
+              {label}
+            </button>
+          ))}
+        </div>
+        <label className="room-search">
+          <Icon name="search" size={17} />
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Tìm phòng xem chung..."
+            aria-label="Tìm phòng"
+          />
+        </label>
       </div>
 
-      <h2 className="together-title">Khám phá phòng công khai</h2>
       {movies.status === 'error' && (
         <div className="load-error" role="alert">
           <Icon name="alert" size={18} />
@@ -65,31 +86,60 @@ export function WatchTogetherPage() {
           ))}
         </div>
       )}
-      {rooms.length > 0 && (
-        <div className="room-grid">
-          {rooms.map((room) => (
-            <button key={room.id} className="room-card" onClick={openSoon}>
-              {room.movie.posterUrl && <img className="room-cover" src={room.movie.posterUrl} alt="" loading="lazy" />}
-              <span className={`room-status ${room.available ? '' : 'full'}`}>
-                {room.available ? 'Còn chỗ' : 'Phòng đã đầy'}
-              </span>
-              <span className="room-copy">
-                <strong>{room.movie.title}</strong>
-                <small>
-                  {typeLabel(room.movie.type)} • Chủ phòng {room.hostDisplayName}
-                </small>
-                <span className="room-foot">
-                  <span>
-                    <Icon name="people" size={14} /> {room.participantCount}/{room.capacity}
+      {movies.status === 'ready' && (
+        <>
+          <p className="room-count">{rooms.length} phòng</p>
+          {rooms.length === 0 ? (
+            <p className="room-empty">Không có phòng nào khớp. Thử đổi bộ lọc hoặc từ khoá khác.</p>
+          ) : (
+            <div className="room-grid">
+              {rooms.map((room) => (
+                <button key={room.id} className={`room-card ${room.status}`} onClick={openSoon}>
+                  <span className="room-cover">
+                    {(movies.data.covers.get(room.movie.movieId) ?? room.movie.posterUrl) && (
+                      <img src={movies.data.covers.get(room.movie.movieId) ?? room.movie.posterUrl ?? ''} alt="" loading="lazy" />
+                    )}
+                    <span className="room-state">
+                      {room.status === 'live' && <i aria-hidden="true" />}
+                      {STATUS_LABEL[room.status]}
+                    </span>
+                    <span className="room-movie">
+                      {room.movie.posterUrl && <img className="room-poster" src={room.movie.posterUrl} alt="" loading="lazy" />}
+                      <span className="room-movie-text">
+                        <strong>{room.movie.title}</strong>
+                        <em>{movieLine(room)}</em>
+                      </span>
+                    </span>
                   </span>
-                  <span>
-                    Xem phòng <Icon name="arrow" size={13} />
+                  <span className="room-body">
+                    <strong className="room-name">{room.name}</strong>
+                    <span className="room-meta">
+                      <span className="room-host">
+                        <span className="room-crown">
+                          <Icon name="crown" size={15} />
+                        </span>
+                        <span>
+                          <b>{room.hostDisplayName}</b>
+                          <small>Chủ phòng</small>
+                        </span>
+                      </span>
+                      <span className="room-people">
+                        <Icon name="people" size={16} />
+                        {room.participantCount}/{room.capacity}
+                      </span>
+                    </span>
+                    <span className="room-foot">
+                      <span className={room.available ? 'open' : ''}>{joinNote(room)}</span>
+                      <span className="room-go">
+                        Xem phòng <Icon name="arrow" size={14} />
+                      </span>
+                    </span>
                   </span>
-                </span>
-              </span>
-            </button>
-          ))}
-        </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </>
       )}
       <p className="together-note">Dữ liệu minh họa</p>
     </section>

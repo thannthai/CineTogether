@@ -38,3 +38,62 @@
   top: 14px;
   right: 14px;
 }
+
+/* "Coming soon" dialog: a popcorn bucket in a dashed frame, two sparkles and a close button. */
+.soon-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  margin: 4px auto 18px;
+  border: 2px dashed var(--accent-pink);
+  border-radius: 28px;
+  background: var(--surface-soft);
+}
+
+.soon-puffs circle {
+  fill: var(--accent-butter);
+}
+
+.soon-bucket {
+  fill: var(--surface);
+  stroke: var(--accent-pink);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.soon-stripes {
+  fill: none;
+  stroke: var(--accent-pink);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.soon-eye {
+  fill: var(--accent-butter);
+}
+
+.soon-spark {
+  position: absolute;
+  fill: var(--accent-butter);
+}
+
+.soon-spark-a {
+  top: -12px;
+  right: -16px;
+}
+
+.soon-spark-b {
+  bottom: 4px;
+  left: -16px;
+  fill: none;
+  stroke: var(--accent-pink);
+  stroke-width: 1.5;
+}
+
+.dialog > .modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}
