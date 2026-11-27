@@ -175,12 +175,11 @@ cache or reduce them. The previous and next episode buttons of the player are ar
 
 More movie information (done, verified 2026-11-26: backend 189 tests, frontend 102 tests, checked in Chrome with real
 data): the API now carries `originalTitle`, `quality`, `language` and `progress` on every movie, and the detail adds
-`releaseYear`, `duration`, `views`, `actors`, `directors` and `trailerUrl` (docs/design/api.md §2.2). The home hero features
-this year's most viewed movies only (views come from the details of the first 12 candidates, read in parallel with a 4 s
-limit; failures rank last). The UI shows quality, language and "Tập 8/24" / "Hoàn tất 36/36" / "Full" stickers, the
+`releaseYear`, `duration`, `views`, `actors`, `directors` and `trailerUrl` (docs/design/api.md §2.2). The home hero first
+ranked this year's movies by views read from the detail of each (replaced on 2026-11-27, see below). The UI shows quality, language and "Tập 8/24" / "Hoàn tất 36/36" / "Full" stickers, the
 Vietnamese title with the English one smaller, the whole hover popup opens the detail page (pointer cursor), and the popup
 plays the muted YouTube trailer when there is one (cropped so YouTube's own controls are hidden), else the backdrop.
-The detail page shows year, duration, directors and actors (views are not shown; they only rank the hero).
+The detail page shows year, duration, directors and actors (views are not shown).
 
 Movie tag and card polish (done 2026-11-26, checked in Chrome by the user; `npm run lint`, `npm test` 102 tests, `npm run build`):
 the movie type tag ("Phim bộ" / "Phim lẻ") is gone from the hero, detail page, popup and search rows; search rows show the
@@ -206,22 +205,29 @@ has its own "Đang lọc" chip and the filter count counts each country (`countr
 with `curl` against the running backend and the real provider (OR result, 400 for 6 slugs and for a bad slug). Not yet
 checked by eye in the browser. The filter panel, header menu, search field and buttons also got thinner (1px) or no borders.
 
-Cinema, anime, year and this year's rows (done 2026-11-27; backend `./gradlew test` 219 tests, frontend `npm test` 125 tests,
-lint and build pass; checked with `curl` on the running backend): `GET /movies` has `list` (`CINEMA`, `ANIME`: the provider's
-cinema and animation lists; the list wins over `type` and search ignores it) and `year` (1900 to 2100, 400 otherwise; it
-also applies to search). `GET /catalog/home` has a second section `cinema` ("Phim chiếu rạp"): up to 14 cinema films of
-this year ranked by views like the hero, from one page of 50, in the same parallel batch of detail calls; it is left out
-when the cinema list fails or is empty. Years are never hard coded: `Featured.pick` ranks this year's movies first and lets
-last year's fill only the missing places, so early in a new year the hero and the cinema row are not empty; the "Dành cho
-gia đình" row asks for the current year and tops up from the previous one (`recentYears.ts`). The menu has "Chiếu rạp"
-and "Anime" (`/movies?list=...`, no type row in the filter panel, their own chip and title; add Nhật Bản for Japanese
-anime); TV Shows stays hidden. The filter panel has a "Năm" row (the current year and the nine before it, read at run
-time). Lists keep the provider's order, which is the last update, not the release year (the provider can sort by year
-but then a new episode of an older series no longer lifts it, so the year filter was chosen over a sort option). Known
-concern, now seen for real: the provider answered HTTP 429 once after many calls in a row, and the home page makes about
-26 provider calls with no cache, so a cache with a few minutes of expiry in the backend (Caffeine behind `MovieProvider`,
-not for `playback`) is the next small task. Not checked by eye in the browser yet: the "Năm" row, the cinema and anime
-pages. The home rows' "Xem tất cả" links do not carry the year.
+Cinema, anime, year, this year's rows and a better hero (done 2026-11-27; backend `./gradlew test` 227 tests, frontend
+`npm test` 125 tests, lint and build pass; the ranking was checked on real provider data with a script, and the lists with
+`curl` on the running backend): `GET /movies` has `list` (`CINEMA`, `ANIME`: the provider's cinema and animation lists; the
+list wins over `type` and search ignores it) and `year` (1900 to 2100, 400 otherwise; it also applies to search). Every list
+item now carries `ratingCount` (IMDb vote count, else TMDb, read from the list, so no call per movie): it tells how well
+known a movie is, which is a better "hot" signal than the provider's own view count (small, and it needs a detail call per
+movie). The hero (`HeroPicks`) is a mix: the 2 best known cinema films, the best known Korean series and the 2 best known
+other series (anime included), most rated first; a place nobody can fill goes to the best known movie left. `GET
+/catalog/home` also has a `cinema` section ("Phim chiếu rạp"): up to 14 cinema films of this year, the best known first;
+both are left out when their list fails, and the home page makes about 4 provider calls instead of about 26. Chinese
+series are not given a hero place: their IMDb counts are tiny (Douban is where they are rated), so the data cannot tell
+which one is well known. The data is cumulative, so it favours well-known titles over what is trending this week. Years
+are never hard coded: movies of this year come first and last year's fill only the missing places, so early in a new year
+the hero and the cinema row are not empty; the "Dành cho gia đình" row asks for the current year and tops up from the
+previous one (`recentYears.ts`). The menu has "Chiếu rạp" and "Anime" (`/movies?list=...`, no type row in the filter
+panel, their own chip and title; add Nhật Bản for Japanese anime); TV Shows stays hidden. The filter panel has a "Năm" row
+(the current year and the nine before it, read at run time). Lists keep the provider's order, which is the last update,
+not the release year (the provider can sort by year but then a new episode of an older series no longer lifts it, so the
+year filter was chosen over a sort option). Known concern: the provider answered HTTP 429 once after many calls in a row;
+the home page now makes far fewer calls, so a cache with a few minutes of expiry in the backend (Caffeine behind
+`MovieProvider`, not for `playback`) is still worth doing but less urgent. Not checked by eye in the browser yet: the "Năm"
+row, the cinema and anime pages, the new hero (the running backend must be restarted to serve it). The home rows' "Xem tất
+cả" links do not carry the year.
 
 Slice 5 (done): `/together` is a "Sắp ra mắt" page with sample rooms built from real posters, labelled "Dữ liệu minh họa";
 every action opens the shared Soon dialog. Rooms and the Watch Party engine are still not built.

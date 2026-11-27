@@ -16,6 +16,8 @@ export type MovieSummary = {
   quality?: string | null
   language?: string | null
   progress?: EpisodeProgress | null
+  // How many people rated it (IMDb, else TMDb): how well known it is. Not shown; the backend ranks the home page by it.
+  ratingCount?: number | null
 }
 
 export type Episode = { episodeId: string; title: string }
