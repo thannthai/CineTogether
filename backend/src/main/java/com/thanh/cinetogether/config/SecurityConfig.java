@@ -50,8 +50,10 @@ class SecurityConfig {
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers(HttpMethod.GET, "/api/v1/catalog/home", "/api/v1/movies",
                                 "/api/v1/movies/*/*").permitAll()
-                        // The hosting platform's health check has no token. Only the status is public.
+                        // The hosting platform's health check has no token. Only the status is public. Uptime
+                        // monitors usually probe with HEAD, so it is allowed next to GET.
                         .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
+                        .requestMatchers(HttpMethod.HEAD, "/actuator/health").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .authenticationEntryPoint(new ProblemJsonAuthenticationEntryPoint(jsonMapper))

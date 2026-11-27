@@ -1,6 +1,7 @@
 package com.thanh.cinetogether.config;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -28,6 +29,17 @@ class HealthEndpointAccessTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("UP"))
                 .andExpect(jsonPath("$.components").doesNotExist());
+    }
+
+    /** Uptime monitors check with HEAD, which is the lighter request. */
+    @Test
+    void healthAnswersAHeadRequestWithoutAToken() throws Exception {
+        mockMvc.perform(head("/actuator/health")).andExpect(status().isOk());
+    }
+
+    @Test
+    void aHeadRequestToAnotherActuatorEndpointStillNeedsAToken() throws Exception {
+        mockMvc.perform(head("/actuator/env")).andExpect(status().isUnauthorized());
     }
 
     @Test
