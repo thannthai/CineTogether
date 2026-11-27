@@ -1,8 +1,16 @@
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
+import { fullscreenMethod } from '../lib/fullscreenSupport'
 import { loadPrefs, savePrefs } from '../lib/playerPrefs'
 import { seekTarget } from '../lib/playerTime'
 
 export const SEEK_STEP = 5
+
+// What iPhone Safari adds to a <video>; the TypeScript DOM types do not know it.
+type IosVideo = {
+  webkitEnterFullscreen?: () => void
+  webkitExitFullscreen?: () => void
+  webkitDisplayingFullscreen?: boolean
+}
 
 export type PlayerState = {
   playing: boolean
@@ -94,11 +102,20 @@ export function usePlayerState(onEnded: () => void) {
   }, [video])
 
   useEffect(() => {
+    const element = video.current
     const onChange = () =>
       setState((previous) => ({ ...previous, fullscreen: document.fullscreenElement === container.current }))
+    const iosBegin = () => setState((previous) => ({ ...previous, fullscreen: true }))
+    const iosEnd = () => setState((previous) => ({ ...previous, fullscreen: false }))
     document.addEventListener('fullscreenchange', onChange)
-    return () => document.removeEventListener('fullscreenchange', onChange)
-  }, [container])
+    element?.addEventListener('webkitbeginfullscreen', iosBegin)
+    element?.addEventListener('webkitendfullscreen', iosEnd)
+    return () => {
+      document.removeEventListener('fullscreenchange', onChange)
+      element?.removeEventListener('webkitbeginfullscreen', iosBegin)
+      element?.removeEventListener('webkitendfullscreen', iosEnd)
+    }
+  }, [container, video])
 
   const togglePlay = useCallback(() => {
     const element = video.current
@@ -148,12 +165,24 @@ export function usePlayerState(onEnded: () => void) {
     [video],
   )
 
-  // The container goes full screen, not the <video>, so our controls stay on screen.
+  // The container goes full screen, not the <video>, so our controls stay on screen. iPhone Safari cannot do that:
+  // there the <video> goes full screen with the phone's own player.
   const toggleFullscreen = useCallback(() => {
+    const surface = container.current
+    const element = video.current as (HTMLVideoElement & IosVideo) | null
+    if (!surface || !element) return
     // The browser may refuse (no user gesture, or full screen turned off): the player simply stays as it is.
-    if (document.fullscreenElement) void document.exitFullscreen().catch(() => {})
-    else void container.current?.requestFullscreen().catch(() => {})
-  }, [container])
+    switch (fullscreenMethod(surface, element)) {
+      case 'container':
+        if (document.fullscreenElement) void document.exitFullscreen().catch(() => {})
+        else void surface.requestFullscreen().catch(() => {})
+        break
+      case 'video':
+        if (element.webkitDisplayingFullscreen) element.webkitExitFullscreen?.()
+        else element.webkitEnterFullscreen?.()
+        break
+    }
+  }, [container, video])
 
   const togglePip = useCallback(() => {
     const element = video.current
