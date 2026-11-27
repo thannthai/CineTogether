@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { PlayerControls, type EpisodeNav } from './PlayerControls'
 import { SEEK_STEP, usePlayerState } from '../hooks/usePlayerState'
 import { useHls } from '../hooks/useHls'
+import { useVideoTaps } from '../hooks/useVideoTaps'
 
 const IDLE_MS = 2500
 
@@ -22,6 +23,11 @@ export function Player({ url, poster, onFailure, episodeNav }: Props) {
   const player = usePlayerState(() => episodeNav?.next?.())
   const { state, container, video } = player
   useHls(video, url, { onFailure, onNative: () => setNative(true) })
+  const taps = useVideoTaps({
+    togglePlay: player.togglePlay,
+    skip: (direction) => player.seekBy(direction * SEEK_STEP),
+    toggleFullscreen: player.toggleFullscreen,
+  })
 
   const wake = () => {
     setAwake(true)
@@ -72,10 +78,17 @@ export function Player({ url, poster, onFailure, episodeNav }: Props) {
         playsInline
         controls={native}
         poster={poster ?? undefined}
-        onClick={native ? undefined : player.togglePlay}
-        onDoubleClick={native ? undefined : player.toggleFullscreen}
+        onPointerDown={native ? undefined : taps.handlers.onPointerDown}
+        onClick={native ? undefined : taps.handlers.onClick}
+        onDoubleClick={native ? undefined : taps.handlers.onDoubleClick}
         onError={onFailure}
       />
+      {taps.flash && (
+        <div key={taps.flash.id} className={`skip-flash ${taps.flash.side}`} aria-hidden="true">
+          {taps.flash.side === 'left' ? '−' : '+'}
+          {SEEK_STEP} giây
+        </div>
+      )}
       {!native && (
         <PlayerControls
           state={state}

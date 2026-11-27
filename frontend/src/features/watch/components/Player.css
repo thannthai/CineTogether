@@ -6,6 +6,51 @@
   outline: none;
 }
 
+/* Without this a double tap zooms the page on a phone, and a tap waits for the zoom check. */
+.player-surface {
+  touch-action: manipulation;
+}
+
+/* Shown briefly on the side that was double tapped to skip. */
+.skip-flash {
+  position: absolute;
+  top: 50%;
+  padding: 12px 18px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #fff;
+  pointer-events: none;
+  animation: skip-flash 0.65s ease-out forwards;
+}
+
+.skip-flash.left {
+  left: 12%;
+}
+
+.skip-flash.right {
+  right: 12%;
+}
+
+@keyframes skip-flash {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) scale(0.9);
+  }
+
+  15%,
+  70% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-50%) scale(1);
+  }
+}
+
 .player-surface:fullscreen {
   border-radius: 0;
 }
