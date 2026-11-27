@@ -1,0 +1,108 @@
+.account {
+  position: relative;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-size: 14px;
+  font-weight: 800;
+  box-shadow: var(--shadow-sm);
+}
+
+button.avatar:hover,
+button.avatar[aria-expanded='true'] {
+  box-shadow: var(--ring);
+}
+
+.account-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  width: 260px;
+  padding: 8px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 24px;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    visibility 0s linear 0.2s;
+  z-index: 40;
+}
+
+.account-menu.open {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.account-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 14px;
+  margin-bottom: 6px;
+  border-bottom: 1.5px dashed var(--border);
+}
+
+.account-identity > div {
+  min-width: 0;
+}
+
+.account-identity strong,
+.account-identity small {
+  display: block;
+}
+
+.account-identity strong {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.account-identity small {
+  margin-top: 2px;
+  overflow: hidden;
+  font-size: 10px;
+  color: var(--text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-menu > button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.account-menu > button:hover {
+  background: var(--surface-soft);
+  color: var(--primary-strong);
+}
+
+@media (max-width: 680px) {
+  .account-menu {
+    position: fixed;
+    top: 64px;
+    right: 18px;
+  }
+}

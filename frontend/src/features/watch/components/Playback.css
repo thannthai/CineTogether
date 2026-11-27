@@ -1,0 +1,39 @@
+.player-state {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+  color: var(--on-image);
+}
+
+.player-state svg {
+  color: var(--accent-pink);
+}
+
+.player-state h2 {
+  font-size: 20px;
+}
+
+.player-state p {
+  max-width: 420px;
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--on-image-muted);
+}
+
+.player-state .spinner {
+  width: 30px;
+  height: 30px;
+  border-width: 3px;
+  color: var(--accent-pink);
+}
+
+.player-state .btn.secondary {
+  background: transparent;
+  color: var(--on-image);
+  border-color: var(--on-image-faint);
+}

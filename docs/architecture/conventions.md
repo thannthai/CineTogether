@@ -7,7 +7,7 @@ not ahead of time.
 
 ```text
 frontend/src/
-├── app/                  # entry wiring: router, providers, layout shell
+├── app/                  # entry wiring: router; layout/ holds the shell (header, footer, drawer, logo)
 ├── features/
 │   ├── auth/             # Supabase client use, login/register/logout screens, session
 │   ├── catalog/          # home, browse, search, movie details
@@ -29,11 +29,24 @@ A feature starts flat and grows only as needed. A larger feature may contain:
 ```text
 features/<feature>/
 ├── api/                  # calls to the backend, request/response types
-├── components/           # presentational components
+├── components/           # presentational components (each with its own .css next to it)
+├── context/              # React context and providers (for example the auth session)
 ├── hooks/                # feature state and data hooks
-├── pages/                # route-level screens
+├── lib/                  # pure functions and rules, with their tests next to them; grouped in subfolders when large
+├── pages/                # route-level screens (each with its own .css next to it)
+├── <feature>.css         # imports the feature's .css files in a fixed order (see "Styles")
 └── index.ts              # the only public entry point of the feature
 ```
+
+Tests sit next to the module they test (`lib/browse/browseView.ts` and `lib/browse/browseView.test.ts`).
+
+### Styles
+
+Plain CSS, one file per component or page, next to it. A feature has one aggregator file (`catalog/catalog.css`,
+`app/layout/layout.css`, ...) that `@import`s its files and is imported by the screens. The aggregator fixes the order
+of the files, so the cascade does not depend on which component happens to be imported first. A new component's `.css`
+is added to the aggregator in the right place; rules that override another file's rules must come after it. Design
+tokens and global rules live in `styles/`.
 
 ### Rules
 

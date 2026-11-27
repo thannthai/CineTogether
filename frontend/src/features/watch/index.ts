@@ -1,1 +1,1 @@
-export { WatchPage } from './WatchPage'
+export { WatchPage } from './pages/WatchPage'

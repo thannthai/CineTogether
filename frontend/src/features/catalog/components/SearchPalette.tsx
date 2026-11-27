@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { errorMessage } from '../../../shared/lib/apiError'
 import { useAsync } from '../../../shared/lib/useAsync'
 import { Icon } from '../../../shared/ui/Icon'
-import { browseMovies } from '../api'
-import { browseHref } from '../browseFilters'
-import { differentTitle, progressLabel } from '../movieLabels'
-import { moviePath } from '../moviePaths'
-import type { MoviePage } from '../types'
+import { browseMovies } from '../api/catalogApi'
+import { browseHref } from '../lib/browse/browseFilters'
+import { differentTitle, progressLabel } from '../lib/movie/movieLabels'
+import { moviePath } from '../lib/movie/moviePaths'
+import type { MoviePage } from '../api/types'
 
 const MIN_LENGTH = 2
 const MAX_SUGGESTIONS = 6

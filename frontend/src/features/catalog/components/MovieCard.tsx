@@ -1,11 +1,11 @@
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
-import { differentTitle } from '../movieLabels'
-import { moviePath } from '../moviePaths'
-import type { MovieSummary } from '../types'
+import { differentTitle } from '../lib/movie/movieLabels'
+import { moviePath } from '../lib/movie/moviePaths'
+import type { MovieSummary } from '../api/types'
 import { MovieTags } from './MovieTags'
 import { MoviePreview } from './MoviePreview'
-import { useHoverPreview } from './useHoverPreview'
+import { useHoverPreview } from '../hooks/useHoverPreview'
 
 export function MovieCard({ movie }: { movie: MovieSummary }) {
   const preview = useHoverPreview()

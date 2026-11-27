@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Icon } from '../../../shared/ui/Icon'
-import { pageWindow } from '../browseView'
+import { pageWindow } from '../lib/browse/browseView'
 
 type Props = {
   current: number

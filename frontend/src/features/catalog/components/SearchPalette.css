@@ -1,0 +1,145 @@
+.palette {
+  width: min(640px, calc(100% - 28px));
+  margin: 12vh auto auto;
+  padding: 18px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 28px;
+  box-shadow: var(--shadow-lg);
+  color: var(--text);
+}
+
+.palette::backdrop {
+  background: var(--overlay);
+  backdrop-filter: blur(8px);
+}
+
+.palette-field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 54px;
+  padding-inline: 20px 12px;
+  border: 2px solid var(--primary-hover);
+  border-radius: 22px;
+  box-shadow: var(--ring);
+  color: var(--primary-strong);
+}
+
+.palette-field input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  background: none;
+  border: 0;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.palette-field input:focus-visible {
+  box-shadow: none;
+}
+
+.palette-body {
+  margin-top: 12px;
+}
+
+.palette-hint {
+  padding: 18px 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.palette-loading {
+  display: grid;
+  gap: 10px;
+  padding: 6px 4px;
+}
+
+.palette-loading .skeleton {
+  height: 54px;
+  border-radius: 18px;
+}
+
+.palette-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1.5px solid transparent;
+  border-radius: 20px;
+  text-align: left;
+}
+
+.palette-row.active {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+}
+
+.palette-row img,
+.palette-noposter {
+  width: 36px;
+  height: 52px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.palette-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.palette-copy strong,
+.palette-copy small {
+  display: block;
+}
+
+.palette-copy strong {
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.palette-copy small {
+  margin-top: 3px;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.palette-row.active .palette-copy strong,
+.palette-row > svg {
+  color: var(--primary-strong);
+}
+
+.palette-all {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 6px;
+  padding: 14px 12px 6px;
+  border-top: 1.5px dashed var(--border);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary-strong);
+}
+
+.palette-foot {
+  margin-top: 12px;
+  font-size: 10px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.palette-foot kbd {
+  padding: 1px 7px;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  font: inherit;
+}

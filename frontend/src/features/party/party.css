@@ -1,0 +1,3 @@
+/* Watch Together styles. Imported in the order the rules had in one stylesheet. */
+@import './components/WatchTogetherStrip.css';
+@import './pages/WatchTogetherPage.css';

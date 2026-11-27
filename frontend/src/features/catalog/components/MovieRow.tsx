@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { errorMessage } from '../../../shared/lib/apiError'
 import type { AsyncState } from '../../../shared/lib/useAsync'
 import { Icon } from '../../../shared/ui/Icon'
-import type { MovieSummary } from '../types'
+import type { MovieSummary } from '../api/types'
 import { MovieCard, MovieCardSkeleton } from './MovieCard'
 
 type Props = {

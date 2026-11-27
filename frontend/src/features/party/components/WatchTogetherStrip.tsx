@@ -1,7 +1,7 @@
 import { Icon } from '../../../shared/ui/Icon'
 import { SoonTag } from '../../../shared/ui/SoonTag'
 import { useSoon } from '../../../shared/ui/soonContext'
-import './party.css'
+import '../party.css'
 
 // Home banner. Rooms are not available yet, so both actions open the "coming soon" dialog.
 export function WatchTogetherStrip() {

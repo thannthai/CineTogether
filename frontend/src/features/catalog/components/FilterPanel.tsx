@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { type BrowseFilters, type MovieTypeFilter } from '../browseFilters'
-import { countriesParam, MAX_COUNTRIES, parseCountries, toggleCountry } from '../countrySelection'
-import { COUNTRIES, GENRES, yearOptions, type FilterOption } from '../filters'
+import { type BrowseFilters, type MovieTypeFilter } from '../lib/browse/browseFilters'
+import { countriesParam, MAX_COUNTRIES, parseCountries, toggleCountry } from '../lib/browse/countrySelection'
+import { COUNTRIES, GENRES, yearOptions, type FilterOption } from '../lib/browse/filters'
 
 type Draft = Pick<BrowseFilters, 'type' | 'genre' | 'country' | 'year'>
 

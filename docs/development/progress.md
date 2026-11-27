@@ -150,8 +150,8 @@ worked, and an unknown episode fell back to the first. Not checked: the guest vi
 no-source and provider-failure retry states, mobile, Safari. The main bundle is about 593 kB (React, Router, Supabase); not
 split yet.
 
-Watch page player rework: the browser's own controls are replaced by a custom bar (`features/watch/Player.tsx`,
-`PlayerControls.tsx`, `usePlayerState.ts`, `useHls.ts`): the progress bar (with the buffered range) sits above the buttons,
+Watch page player rework: the browser's own controls are replaced by a custom bar (`features/watch/components/Player.tsx`,
+`PlayerControls.tsx`, `hooks/usePlayerState.ts`, `hooks/useHls.ts`): the progress bar (with the buffered range) sits above the buttons,
 then play and pause, back and forward 5 seconds (also the Left and Right keys), volume and mute (the slider opens when the pointer is on the volume button), previous and next episode buttons
 (shown for a series and disabled on the first and last episode, absent for a single movie) and, on the right, playback speed, picture-in-picture (hidden where unsupported) and full
 screen; Space or K, M and F are shortcuts, the controls hide after 2.5 s of inactivity while playing, a click on the video
@@ -229,6 +229,16 @@ the home page now makes far fewer calls, so a cache with a few minutes of expiry
 `MovieProvider`, not for `playback`) is still worth doing but less urgent. Not checked by eye in the browser yet: the "Năm"
 row, the cinema and anime pages, the new hero (the running backend must be restarted to serve it). The home rows' "Xem tất
 cả" links do not carry the year.
+
+Frontend reorganisation (done 2026-11-27, files only moved, no behaviour change; `npm run lint`, `npm test` 127 tests, `npm run
+build` pass): `catalog`, `watch`, `auth` and `party` now have `api/`, `components/`, `hooks/`, `lib/` (pure rules with their
+tests; in `catalog` grouped as `browse/`, `movie/`, `home/`), `pages/` and, for auth, `context/`; the shell is in
+`app/layout/`. The single stylesheets were split into one `.css` per component or page next to it, and each feature's
+aggregator (`catalog.css`, `watch.css`, `auth.css`, `party.css`, `app/layout/layout.css`) imports them in the original
+order; the built CSS has exactly the same rules as before except the unused `.type-badge`, and no rule that could change
+the look moved after another one it competes with (checked on the built bundles). The convention is in
+`docs/architecture/conventions.md`. Known smell for later: `EpisodeList.css` and `Hero.css` styles are also used by the
+watch page and the detail page across features; they should become shared components.
 
 Slice 5 (done): `/together` is a "Sắp ra mắt" page with sample rooms built from real posters, labelled "Dữ liệu minh họa";
 every action opens the shared Soon dialog. Rooms and the Watch Party engine are still not built.

@@ -1,0 +1,32 @@
+/* The container (not the video) goes full screen, so the controls below stay on screen. */
+.player-surface {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  outline: none;
+}
+
+.player-surface:fullscreen {
+  border-radius: 0;
+}
+
+.player-surface.idle {
+  cursor: none;
+}
+
+.player-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+.player-surface.idle .player-controls {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.player-surface:fullscreen .player-controls {
+  padding-inline: 36px;
+}

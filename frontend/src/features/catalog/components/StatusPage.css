@@ -1,0 +1,21 @@
+.status-page {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding-block: 96px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.status-page svg {
+  color: var(--primary-strong);
+}
+
+.status-page h1 {
+  font-size: 28px;
+  color: var(--text);
+}
+
+.status-page .btn {
+  margin-top: 12px;
+}

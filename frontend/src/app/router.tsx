@@ -2,8 +2,8 @@ import { createBrowserRouter } from 'react-router-dom'
 import { BrowsePage, DetailPage, HomePage } from '../features/catalog'
 import { WatchTogetherPage } from '../features/party'
 import { WatchPage } from '../features/watch'
-import { AppLayout } from './AppLayout'
-import { NotFoundPage } from './PagePlaceholder'
+import { AppLayout } from './layout/AppLayout'
+import { NotFoundPage } from './layout/PagePlaceholder'
 
 // Screen routes follow docs/design/api.md: providerKey and movieId identify a movie.
 export const router = createBrowserRouter([

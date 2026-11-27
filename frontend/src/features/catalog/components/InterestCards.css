@@ -1,0 +1,121 @@
+.interests {
+  margin-top: 36px;
+}
+
+.interest-row {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(190px, 1fr);
+  gap: 14px;
+  /* Room above the cards: a lifted card would otherwise be cut off by this scrolling row. */
+  margin-top: 8px;
+  padding-block: 8px 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.interest-row::-webkit-scrollbar {
+  display: none;
+}
+
+.interest-card {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: 150px;
+  padding: 18px 20px;
+  overflow: hidden;
+  border: 1.5px solid var(--area-line);
+  border-radius: 24px;
+  color: var(--area-text);
+  transition:
+    transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.24s;
+}
+
+/* Flat pastel fill while a cover loads and for a theme without one; text on it is always plum. */
+.tone-sky {
+  background: var(--area-sky);
+}
+
+.tone-butter {
+  background: var(--area-butter);
+}
+
+.tone-pink {
+  background: var(--area-pink);
+}
+
+.tone-lavender {
+  background: var(--area-lavender);
+}
+
+.tone-mint {
+  background: var(--area-mint);
+}
+
+.interest-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
+}
+
+.interest-cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+  transition: transform 0.4s ease;
+  animation: hero-fade 0.5s ease;
+}
+
+.interest-card:hover .interest-cover {
+  transform: scale(1.06);
+}
+
+/* Functional scrim so the white text stays readable on any poster. */
+.interest-card.has-cover {
+  color: var(--on-image);
+  background: var(--media-bg);
+}
+
+.interest-card.has-cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgba(var(--scrim-rgb), 0.85) 0%, rgba(var(--scrim-rgb), 0.15) 65%);
+}
+
+.interest-copy {
+  position: relative;
+  z-index: 1;
+}
+
+.interest-copy strong,
+.interest-copy small {
+  display: block;
+}
+
+.interest-copy strong {
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.interest-copy small {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+.interest-card:not(.has-cover) .interest-copy strong {
+  color: #3d2c3e;
+}
+
+.interest-card:not(.has-cover) .interest-copy small {
+  color: #634d65;
+}

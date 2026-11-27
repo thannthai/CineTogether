@@ -4,8 +4,8 @@ import { Icon } from '../../../shared/ui/Icon'
 import { useSoon } from '../../../shared/ui/soonContext'
 import { SoonTag } from '../../../shared/ui/SoonTag'
 import { browseMovies, typeLabel } from '../../catalog'
-import { mockRooms } from '../mockRooms'
-import '../components/party.css'
+import { mockRooms } from '../lib/mockRooms'
+import '../party.css'
 
 // Watch Together is announced, not built: every action opens the "coming soon" dialog and the rooms are samples.
 export function WatchTogetherPage() {

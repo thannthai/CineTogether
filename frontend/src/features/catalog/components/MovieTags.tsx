@@ -1,5 +1,5 @@
-import type { EpisodeProgress, MovieType } from '../types'
-import { languageLabel, progressLabel } from '../movieLabels'
+import type { EpisodeProgress, MovieType } from '../api/types'
+import { languageLabel, progressLabel } from '../lib/movie/movieLabels'
 
 type Props = {
   quality?: string | null

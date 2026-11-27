@@ -1,0 +1,93 @@
+.filter-panel {
+  margin-top: 16px;
+  padding: 8px 26px 22px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 26px;
+  box-shadow: var(--shadow);
+}
+
+.filter-row {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 16px;
+  padding-block: 18px;
+  border-bottom: 1.5px dashed var(--border);
+}
+
+.filter-label {
+  padding-top: 8px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--primary-strong);
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-chips button {
+  height: 34px;
+  padding-inline: 15px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.filter-chips button:hover {
+  border-color: color-mix(in srgb, var(--primary) 55%, transparent);
+  background: var(--surface-soft);
+}
+
+.filter-chips button.selected {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+  font-weight: 800;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 12px;
+  padding-top: 20px;
+}
+
+.filter-actions .btn.secondary {
+  border-width: 1px;
+  border-color: color-mix(in srgb, var(--primary) 45%, transparent);
+}
+
+.filter-actions .btn.secondary:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--primary) 75%, transparent);
+}
+
+@media (max-width: 680px) {
+
+  .filter-panel {
+    padding-inline: 18px;
+  }
+
+  .filter-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .filter-label {
+    padding-top: 0;
+  }
+
+  .filter-actions .btn {
+    flex: 1;
+  }
+}
+
+.filter-chips button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

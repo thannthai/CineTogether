@@ -1,0 +1,6 @@
+/* Application shell: header, navigation, drawer and footer. Imported in the order the rules had in one stylesheet. */
+@import './AppLayout.css';
+@import './Logo.css';
+@import './Header.css';
+@import './Footer.css';
+@import './PagePlaceholder.css';

@@ -1,0 +1,16 @@
+.page-placeholder {
+  padding-block: 80px;
+}
+
+.page-placeholder h1 {
+  font-size: 32px;
+}
+
+.page-placeholder p {
+  margin-top: 12px;
+  color: var(--text-muted);
+}
+
+.page-placeholder .btn {
+  margin-top: 24px;
+}

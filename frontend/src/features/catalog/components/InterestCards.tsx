@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom'
 import { useAsync } from '../../../shared/lib/useAsync'
 import { Icon } from '../../../shared/ui/Icon'
-import { browseMovies } from '../api'
-import { browseHref, type BrowseFilters } from '../browseFilters'
-import { pickDistinct } from '../coverPicks'
-import type { MovieSummary } from '../types'
+import { browseMovies } from '../api/catalogApi'
+import { browseHref, type BrowseFilters } from '../lib/browse/browseFilters'
+import { pickDistinct } from '../lib/home/coverPicks'
+import type { MovieSummary } from '../api/types'
 
 type Tone = 'sky' | 'butter' | 'pink' | 'lavender' | 'mint'
 

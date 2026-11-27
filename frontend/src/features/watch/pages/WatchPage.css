@@ -1,0 +1,86 @@
+.watch {
+  padding-block: 28px 24px;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.back-link:hover {
+  color: var(--primary-strong);
+}
+
+.back-link .flip {
+  transform: scaleX(-1);
+}
+
+/* The player stays dark in both themes, like a screen. */
+.player-box {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--media-bg);
+  border: 1.5px solid var(--border);
+  border-radius: 26px;
+  box-shadow: var(--shadow-lg);
+}
+
+.player-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.watch-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.watch-info h1 {
+  font-size: clamp(22px, 2.6vw, 30px);
+  line-height: 1.3;
+}
+
+.now-playing {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--primary-strong);
+}
+
+.watch .episodes {
+  margin-top: 32px;
+}
+
+.episode-grid a.current {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+}
+
+@media (max-width: 680px) {
+
+  .watch {
+    padding-top: 18px;
+  }
+
+  .player-box {
+    border-radius: 18px;
+  }
+
+  .watch-info {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

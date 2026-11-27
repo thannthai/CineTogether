@@ -1,3 +1,3 @@
-export { AccountMenu } from './AccountMenu'
-export { AuthProvider } from './AuthProvider'
-export { useAuth, useAuthDialog } from './authContext'
+export { AccountMenu } from './components/AccountMenu'
+export { AuthProvider } from './context/AuthProvider'
+export { useAuth, useAuthDialog } from './context/authContext'
