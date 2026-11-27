@@ -3,7 +3,8 @@ import { fullscreenMethod } from '../lib/fullscreenSupport'
 import { loadPrefs, savePrefs } from '../lib/playerPrefs'
 import { seekTarget } from '../lib/playerTime'
 
-export const SEEK_STEP = 5
+// The same step as the skip buttons of the phone's own player (iPhone full screen).
+export const SEEK_STEP = 10
 
 // What iPhone Safari adds to a <video>; the TypeScript DOM types do not know it.
 type IosVideo = {
