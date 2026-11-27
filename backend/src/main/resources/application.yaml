@@ -42,5 +42,15 @@ app:
       connect-timeout: 3s
       read-timeout: 5s
 
+# The hosting platform sets PORT; 8080 is the local default.
 server:
-  port: 8080
+  port: ${PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never

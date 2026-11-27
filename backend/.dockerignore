@@ -1,0 +1,9 @@
+.gradle
+build
+.env
+.env.*
+!.env.example
+http
+HELP.md
+.idea
+*.iml
