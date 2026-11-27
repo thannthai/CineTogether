@@ -249,13 +249,28 @@ is larger and the header spacing tighter; "Khám phá tất cả" has an arrow; 
 sentence about watching with friends and people who love films, copyright), with no social icons or link row because the
 project has none yet. Checked by eye by the user while working; the cases below were not.
 
+Deployment preparation (2026-11-27, `./gradlew test` 229 tests): `backend/Dockerfile` (two stages, JRE 21, runnable jar only,
+`-XX:MaxRAMPercentage=70`) and `.dockerignore`; the port comes from `PORT` (`server.port: ${PORT:8080}`); `GET /actuator/health`
+is public and shows only the status (`HealthEndpointAccessTests`; every other actuator endpoint needs a token and only `health`
+is exposed); `frontend/vercel.json` sends every path to `index.html`. The image was built and run locally against the local
+database (health `UP`, home 200). Plan: frontend on Vercel (root `frontend`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`,
+`VITE_API_BASE_URL` ending in `/api/v1`), backend on Render (Docker, root `backend`, health check `/actuator/health`, Singapore),
+database on the existing Supabase project through the Session pooler (port 5432, never the Transaction pooler) with the Supabase
+Data API switched off, because Flyway creates the tables in `public`; `DB_URL` is the JDBC form, and
+`SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=5`. `CORS_ALLOWED_ORIGINS` must be set to the Vercel address, and the Vercel address
+added to Supabase Authentication (Site URL and Redirect URLs). Not done yet: pushing the commits to GitHub, creating the Render
+web service, setting the environment variables, and the Supabase and CORS settings. Optional hardening not done: a `V2`
+migration that enables row level security on every table. The free Render web service sleeps when idle, and the free
+Render database expires after 30 days, which is why Supabase is used for the database.
+
 Known concerns: the home page now makes about 4 provider calls (the provider answered HTTP 429 once when called many times
 in a row); the trailer embed depends on YouTube allowing embedding, and its centre pause and previous/next buttons still
 show; the theme cover cards pick a recently updated movie of this year, not the best known one.
 
 Still to check by hand (not done yet): the Authentication items listed above (rename in "Hồ sơ", session after a reload,
 sign-out, a new account with a display name), the watch page for a guest, the no-source and provider-failure states, full
-screen and the auto-hiding controls, touch and phone layout, Safari, and the new "Năm" row, cinema and anime pages and hero.
+screen and the auto-hiding controls, touch and phone layout, Safari, the new "Năm" row, cinema and anime pages and hero, and the
+`/together` page and the coming-soon dialog in the light theme and on a phone (checked only in the dark theme on a wide screen).
 
 Improve later (not blocking Watch Party): a backend cache with a few minutes of expiry (Caffeine behind `MovieProvider`,
 never for `playback`; less urgent now); a TV Shows list; the total episode count on cards (the provider's lists do not carry
