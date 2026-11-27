@@ -5,7 +5,10 @@ COPY gradlew build.gradle.kts settings.gradle.kts ./
 COPY gradle gradle
 COPY src src
 # Tests need Docker (Testcontainers) and run in CI, not in the image build.
-RUN ./gradlew bootJar -x test --no-daemon
+# Maven Central sometimes answers 429 (too many requests) to the shared address of a build machine. The downloads that
+# worked stay in the Gradle cache, so each new attempt goes further; the build fails only if the jar is still missing.
+RUN for attempt in 1 2 3 4 5; do ./gradlew bootJar -x test --no-daemon && break; echo "Gradle failed (attempt $attempt), retrying"; sleep 15; done; \
+    ls build/libs/*-SNAPSHOT.jar
 
 FROM eclipse-temurin:21-jre
 WORKDIR /app
