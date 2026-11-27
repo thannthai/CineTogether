@@ -584,18 +584,9 @@
     height: 34px;
   }
 
+  /* On a phone, signing in and up live in the drawer only. */
   .header-auth {
-    gap: 0;
-  }
-
-  .login-link {
     display: none;
-  }
-
-  .signup-btn {
-    min-height: 32px;
-    padding: 7px 10px;
-    font-size: 9px;
   }
 }
 
