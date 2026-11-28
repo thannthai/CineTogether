@@ -41,6 +41,12 @@ a.page-step:hover {
   font-weight: 800;
 }
 
+/* The previous and next buttons hold only an arrow, so they are round like the page numbers. */
+.page-step {
+  width: 40px;
+  padding-inline: 0;
+}
+
 .page-step.disabled {
   opacity: 0.45;
 }
@@ -57,5 +63,10 @@ a.page-step:hover {
     min-width: 36px;
     height: 36px;
     padding-inline: 10px;
+  }
+
+  .page-step {
+    width: 36px;
+    padding-inline: 0;
   }
 }

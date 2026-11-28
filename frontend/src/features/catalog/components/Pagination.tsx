@@ -15,12 +15,12 @@ export function Pagination({ current, hasNext, hrefFor }: Props) {
   return (
     <nav className="pagination" aria-label="Phân trang">
       {prev !== null ? (
-        <Link className="page-step" to={hrefFor(prev)}>
-          <Icon name="chevronLeft" size={14} /> Trước
+        <Link className="page-step" to={hrefFor(prev)} aria-label="Trang trước">
+          <Icon name="chevronLeft" size={16} />
         </Link>
       ) : (
-        <span className="page-step disabled" aria-disabled="true">
-          <Icon name="chevronLeft" size={14} /> Trước
+        <span className="page-step disabled" aria-disabled="true" aria-label="Trang trước">
+          <Icon name="chevronLeft" size={16} />
         </span>
       )}
       <div className="page-numbers">
@@ -42,12 +42,12 @@ export function Pagination({ current, hasNext, hrefFor }: Props) {
         )}
       </div>
       {next !== null ? (
-        <Link className="page-step" to={hrefFor(next)}>
-          Sau <Icon name="chevron" size={14} />
+        <Link className="page-step" to={hrefFor(next)} aria-label="Trang sau">
+          <Icon name="chevron" size={16} />
         </Link>
       ) : (
-        <span className="page-step disabled" aria-disabled="true">
-          Sau <Icon name="chevron" size={14} />
+        <span className="page-step disabled" aria-disabled="true" aria-label="Trang sau">
+          <Icon name="chevron" size={16} />
         </span>
       )}
     </nav>

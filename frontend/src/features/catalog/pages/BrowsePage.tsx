@@ -70,7 +70,15 @@ export function BrowsePage() {
       <div className="browse-tools">
         <form className="browse-search" role="search" onSubmit={search} key={filters.q ?? ''}>
           <Icon name="search" size={18} />
-          <input name="q" type="search" defaultValue={filters.q ?? ''} placeholder="Bạn muốn xem phim gì hôm nay?" aria-label="Tìm phim" />
+          {/* The browser's own history of past searches looks like movie suggestions, so it is turned off. */}
+          <input
+            name="q"
+            type="search"
+            autoComplete="off"
+            defaultValue={filters.q ?? ''}
+            placeholder="Bạn muốn xem phim gì hôm nay?"
+            aria-label="Tìm phim"
+          />
         </form>
         <button
           className={`filter-toggle ${panelOpen ? 'open' : ''}`}
