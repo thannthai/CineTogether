@@ -2,7 +2,8 @@
 
 ## Current Phase
 
-Watch Alone is feature complete (2026-11-27); the next phase is Watch Party Room Management. The Authentication and
+Watch Alone is feature complete (2026-11-27) and deployed (2026-11-28, see "Deployment and polish"); the next phase is
+Watch Party Room Management. The Authentication and
 Movie Catalog & Watch Alone milestone boxes stay unchecked until the manual checks under "Still to check" are done.
 
 ## Milestones
@@ -134,7 +135,7 @@ real sign-up and sign-in against Supabase, `GET /me` with the real token (includ
 `PATCH /me`; they are done by hand because the assistant must not create accounts or type passwords on a hosted service.
 On 2026-11-26 the user signed in with a real account: the header shows the avatar menu with the name and the email, so the
 sign-in and the session work. Still to check by hand: renaming in "Hồ sơ" (`PATCH /me`), the session surviving a page reload,
-sign-out, and a new account whose sign-up carries a display name. The Authentication milestone stays open until then. Forgot-password is not built.
+sign-out, and a new account whose sign-up carries a display name. The Authentication milestone stays open until then. Forgot-password was added on 2026-11-28 (see "Deployment and polish").
 
 Frontend slice 4 (watch page, `/movies/:providerKey/:movieId/watch?episode=...`) is done: a guest only sees the invitation to
 sign in or register and `playback` is not called; a signed-in user gets `GET .../playback` (with the token) and the stream
@@ -152,7 +153,7 @@ split yet.
 
 Watch page player rework: the browser's own controls are replaced by a custom bar (`features/watch/components/Player.tsx`,
 `PlayerControls.tsx`, `hooks/usePlayerState.ts`, `hooks/useHls.ts`): the progress bar (with the buffered range) sits above the buttons,
-then play and pause, back and forward 5 seconds (also the Left and Right keys), volume and mute (the slider opens when the pointer is on the volume button), previous and next episode buttons
+then play and pause, back and forward 10 seconds (5 until 2026-11-28; also the Left and Right keys), volume and mute (the slider opens when the pointer is on the volume button), previous and next episode buttons
 (shown for a series and disabled on the first and last episode, absent for a single movie) and, on the right, playback speed, picture-in-picture (hidden where unsupported) and full
 screen; Space or K, M and F are shortcuts, the controls hide after 2.5 s of inactivity while playing, a click on the video
 toggles play and a double click toggles full screen. When an episode ends the next one starts. Volume, mute and speed are
@@ -258,10 +259,34 @@ database (health `UP`, home 200). Plan: frontend on Vercel (root `frontend`, `VI
 database on the existing Supabase project through the Session pooler (port 5432, never the Transaction pooler) with the Supabase
 Data API switched off, because Flyway creates the tables in `public`; `DB_URL` is the JDBC form, and
 `SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=5`. `CORS_ALLOWED_ORIGINS` must be set to the Vercel address, and the Vercel address
-added to Supabase Authentication (Site URL and Redirect URLs). Not done yet: pushing the commits to GitHub, creating the Render
-web service, setting the environment variables, and the Supabase and CORS settings. Optional hardening not done: a `V2`
+added to Supabase Authentication (Site URL and Redirect URLs). All of this was done on 2026-11-27 and 28 (see "Deployment and polish").
+Optional hardening not done: a `V2`
 migration that enables row level security on every table. The free Render web service sleeps when idle, and the free
 Render database expires after 30 days, which is why Supabase is used for the database.
+
+Deployment and polish (2026-11-27 and 28; `./gradlew test` 231 tests, `npm test` 149 tests, build and lint clean). The frontend
+runs on Vercel (`https://filmtogether.vercel.app`, root `frontend`, the three `VITE_*` variables as Config), the backend on
+Render (`https://cinetogether-h99g.onrender.com`, Docker, free plan, health check `/actuator/health`) and the database on
+Supabase through the Session pooler. Render's shared build address was rate limited by Maven Central (HTTP 429) and retrying
+alone did not help, so the image build reads dependencies through a mirror first (`backend/docker/mirror.init.gradle`, copied by
+the Dockerfile and used only there) and still retries the Gradle step. UptimeRobot probes the health endpoint every 5 minutes to
+keep the free instance awake; it sends HEAD requests, which were rejected with 401, so `/actuator/health` now allows HEAD too
+(`HealthEndpointAccessTests`, written first and seen failing). The home page, a movie page, sign-in and playback work on the
+deployed site (seen by the user).
+
+Frontend changes of 2026-11-28: sign-up asks for the password twice (`validatePasswordConfirmation`), and the login dialog has
+"Quên mật khẩu?": `resetPasswordForEmail` sends a link, and when the user comes back through it Supabase raises
+`PASSWORD_RECOVERY`, which opens a dialog for the new password (`AuthProvider`, `AuthDialog`); the Vercel address must be in the
+Supabase Redirect URLs, and the flow was not tried end to end with a real email. The full screen button no longer fails silently on
+iPhone Safari: `fullscreenMethod` puts the container on screen where the browser can and the `<video>` itself otherwise, so on an
+iPhone full screen is Apple's own player (without our controls and with its own 10 s skip). The skip step is 10 seconds. On a
+touch screen two taps on the left or right third of the video skip back or ahead (`tapGesture`, `useVideoTaps`; a single tap
+plays or pauses after 280 ms; two taps in the middle do nothing yet; the mouse keeps click and double click). The header sign-up
+button is hidden on phones (the drawer has both actions), the search box of the movie page turns the browser's autocomplete off,
+and the pagination buttons are arrows only. Measured on a live stream: KKPhim serves one 1920x800 level at about 3.5 Mbps and
+about 24 to 25 frames per second, with no dropped frames and about 140 s buffered, so the slight judder on a 60 Hz screen comes
+from the source. KKPhim has no intro markers, no cast photos and no search by actor name; its search ignores accents and matches
+titles only.
 
 Known concerns: the home page now makes about 4 provider calls (the provider answered HTTP 429 once when called many times
 in a row); the trailer embed depends on YouTube allowing embedding, and its centre pause and previous/next buttons still
@@ -272,12 +297,28 @@ sign-out, a new account with a display name), the watch page for a guest, the no
 screen and the auto-hiding controls, touch and phone layout, Safari, the new "Năm" row, cinema and anime pages and hero, and the
 `/together` page and the coming-soon dialog in the light theme and on a phone (checked only in the dark theme on a wide screen).
 
-Improve later (not blocking Watch Party): a backend cache with a few minutes of expiry (Caffeine behind `MovieProvider`,
-never for `playback`; less urgent now); a TV Shows list; the total episode count on cards (the provider's lists do not carry
+Improve later (not blocking Watch Party): a TV Shows list; the total episode count on cards (the provider's lists do not carry
 it, only the detail does); a quality selector (every stream has one level today); dropping `loop` and `playlist` from the
-trailer embed to try to lose its arrows; forgot-password; a fuller synopsis source such as TMDb (KKPhim cuts some synopses
+trailer embed to try to lose its arrows; a fuller synopsis source such as TMDb (KKPhim cuts some synopses
 itself); the year on the home rows' "Xem tất cả" links; a trending signal (the rating counts are cumulative, so the hero
 favours well-known titles over this week's hits).
+
+After Watch Party (decided 2026-11-28; none of these is started):
+
+- A search of our own: today the quick search and the movie page search pass the keyword to the provider
+  (`/v1/api/tim-kiem`), which matches titles without accents but not the cast or a typo. A typo tolerant search with our own
+  ranking needs an index in PostgreSQL (`pg_trgm` or full text search) fed from the provider.
+- Sign in with Google (a Supabase OAuth provider and a Google Cloud client whose consent screen is published); the backend needs
+  no change, but the display name must be read from the Google metadata in `ProfileProvisioner`.
+- Skip intro: KKPhim has no markers. Options are community data (AniSkip for anime by MyAnimeList id, TheIntroDB; neither
+  tried with KKPhim titles, whose files may differ in timing) or a fixed skip button; it changes the API and a room must keep
+  everyone in sync.
+- An actor page: KKPhim gives only the names. Photo and biography could come from TMDB (the detail carries `tmdb.id`), and the
+  list of movies from an own actor to movie index; names would need normalizing.
+- A backend cache with a few minutes of expiry (Caffeine behind `MovieProvider`, never for `playback`).
+- Trailers that YouTube blocks (for example by a copyright claim) show YouTube's error page in the hover preview, and oEmbed
+  cannot tell them apart (it answers 200); use the IFrame API, show the trailer only once it is playing, and keep the poster on
+  an error or after a few seconds.
 
 ## Blockers
 
