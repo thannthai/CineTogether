@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAsync } from '../../../shared/lib/useAsync'
 import { Icon } from '../../../shared/ui/Icon'
 import { useSoon } from '../../../shared/ui/soonContext'
@@ -42,7 +42,6 @@ function trailerSrc(id: string) {
 
 export function MoviePreview({ movie, anchor, onEnter, onLeave, onNavigate }: Props) {
   const openSoon = useSoon()
-  const navigate = useNavigate()
   const [trailerReady, setTrailerReady] = useState(false)
   const detail = useAsync(
     () => getMovieCached(movie.providerKey, movie.movieId),
@@ -56,18 +55,17 @@ export function MoviePreview({ movie, anchor, onEnter, onLeave, onNavigate }: Pr
   const progress = data?.progress ?? movie.progress
 
   return (
-    <div
-      className="movie-preview"
-      style={{ left, top, width: PREVIEW_WIDTH }}
-      onMouseEnter={onEnter}
-      onMouseLeave={onLeave}
-      onClick={(event) => {
-        // Buttons and links inside keep their own action.
-        if ((event.target as HTMLElement).closest('a, button')) return
-        onNavigate()
-        navigate(moviePath(movie))
-      }}
-    >
+    <div className="movie-preview" style={{ left, top, width: PREVIEW_WIDTH }} onMouseEnter={onEnter} onMouseLeave={onLeave}>
+      {/* A real link over the whole popup, under the action buttons: a click opens the detail page, and the browser's
+          own menu (open in a new tab, copy the link) and Cmd/Ctrl or middle click work on it. It cannot be dragged out. */}
+      <Link
+        className="preview-cover"
+        to={moviePath(movie)}
+        onClick={onNavigate}
+        aria-label={`Chi tiết ${movie.title}`}
+        tabIndex={-1}
+        draggable={false}
+      />
       <div className="preview-media">
         {media ? <img src={media} alt="" /> : <span className="skeleton" />}
         {trailer && (

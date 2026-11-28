@@ -14,6 +14,7 @@ export function MovieCard({ movie }: { movie: MovieSummary }) {
       <Link
         className="movie-card"
         to={moviePath(movie)}
+        draggable={false}
         onMouseEnter={(event) =>
           preview.open(event.currentTarget.querySelector<HTMLElement>('.poster-wrap') ?? event.currentTarget)
         }
@@ -22,7 +23,7 @@ export function MovieCard({ movie }: { movie: MovieSummary }) {
       >
         <div className="poster-wrap">
           {movie.posterUrl ? (
-            <img src={movie.posterUrl} alt="" loading="lazy" />
+            <img src={movie.posterUrl} alt="" loading="lazy" draggable={false} />
           ) : (
             <div className="poster-fallback" aria-hidden="true">
               {movie.title.slice(0, 1)}

@@ -88,7 +88,7 @@ export function Hero({ featured }: { featured: MovieSummary[] }) {
               className={`hero-thumb ${i === index ? 'selected' : ''}`}
               onClick={() => setIndex(i)}
             >
-              {item.posterUrl ? <img src={item.posterUrl} alt="" /> : <span>{item.title.slice(0, 1)}</span>}
+              {item.posterUrl ? <img src={item.posterUrl} alt="" draggable={false} /> : <span>{item.title.slice(0, 1)}</span>}
             </button>
           ))}
         </div>

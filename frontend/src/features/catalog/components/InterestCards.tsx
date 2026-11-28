@@ -57,8 +57,11 @@ export function InterestCards() {
               key={item.title}
               to={browseHref(item.filters)}
               className={`interest-card ${cover ? 'has-cover' : `tone-${TONES[i % TONES.length]}`}`}
+              draggable={false}
             >
-              {cover?.posterUrl && <img className="interest-cover" src={cover.posterUrl} alt="" loading="lazy" />}
+              {cover?.posterUrl && (
+                <img className="interest-cover" src={cover.posterUrl} alt="" loading="lazy" draggable={false} />
+              )}
               <span className="interest-copy">
                 <strong>{item.title}</strong>
                 <small>
