@@ -140,18 +140,6 @@
   cursor: pointer;
 }
 
-/* The link over the popup; the action buttons are above it and keep their own action. */
-.preview-cover {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-}
-
-.preview-actions {
-  position: relative;
-  z-index: 2;
-}
-
 .movie-preview .preview-actions a,
 .movie-preview .preview-actions button {
   cursor: pointer;
